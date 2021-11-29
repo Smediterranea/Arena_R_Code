@@ -7,7 +7,7 @@ require(markovchain)
 require(Gmisc)
 
 
-TrackerClass.RawDataFrame<-function(id,parameters,data,roisize){
+TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI){
   if (!is.numeric(id))
     stop("invalid arguments") 
   
@@ -24,7 +24,7 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize){
   tmp$Region<-factor(tmp$Region)
   tmp$DateQuality<-factor(tmp$DataQuality)
   
-  data=list(ID=id,ROI=roisize,Parameters=parameters,RawData=tmp)
+  data=list(ID=id,ROI=roisize,CountingROI=theCountingROI,Parameters=parameters,RawData=tmp)
   class(data)="Tracker"
   
   ## The class is done, now can add default operations to it
@@ -32,9 +32,6 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize){
   data<-Tracker.Calculate.SpeedsAndFeeds(data)
   data<-Tracker.Calculate.MovementTypes(data)
   data<-Tracker.Calculate.Sleep(data)
-  if(nrow(tmp)>0)
-    assign(st,data,pos=1)  
-  
   ##if(length(GetRegions(data$RawData))==2) {
   ##  data<-TwoChoiceTracker.ProcessTwoChoiceTracker(data)
   ##}
@@ -44,6 +41,8 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize){
   else if(p$TType=="XChoiceTracker"){
     data<-XChoiceTracker.ProcessXTracker(data)
   }
+  if(nrow(tmp)>0)
+    assign(st,data,pos=1)  
   data
 }
 
@@ -205,8 +204,8 @@ Tracker.GetType<-function(tracker){
   tracker$Parameters$TType
 }
 
-GetMeanXPositions.Tracker<-function(tracker,time=c(0,0)){
-  rd<-Tracker.GetRawData(tracker,time)
+GetMeanXPositions.Tracker<-function(tracker,range=c(0,0)){
+  rd<-Tracker.GetRawData(tracker,range)
   Walking<-mean(rd$RelX[rd$Walking])
   MicroMoving<-mean(rd$RelX[rd$MicroMoving])
   Resting<-mean(rd$RelX[rd$Resting])
@@ -218,8 +217,8 @@ GetMeanXPositions.Tracker<-function(tracker,time=c(0,0)){
   tmp
 }
 
-Summarize.Tracker<-function(tracker,time=c(0,0),ShowPlot=TRUE){
-  rd<-Tracker.GetRawData(tracker,time)  
+Summarize.Tracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){
+  rd<-Tracker.GetRawData(tracker,range)  
   
   ## Now get the summary on the rest
   total.min<-rd$Minutes[nrow(rd)]-rd$Minutes[1]
@@ -237,7 +236,7 @@ Summarize.Tracker<-function(tracker,time=c(0,0),ShowPlot=TRUE){
     r.tmp[1,i]<-sum(rd$Region==regions[i])
   }
   
-  results<-data.frame(tracker$ID,total.min,total.dist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,avg.speed,time[1],time[2],r.tmp)
+  results<-data.frame(tracker$ID,total.min,total.dist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,avg.speed,range[1],range[2],r.tmp)
   names(results)<-c("ID","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",regions)
   
   if(ShowPlot){
@@ -249,8 +248,8 @@ Summarize.Tracker<-function(tracker,time=c(0,0),ShowPlot=TRUE){
   results
 }
 
-PlotXY.Tracker<-function(tracker,time=c(0,0),ShowQuality=FALSE,PointSize=0.75){
-  rd<-Tracker.GetRawData(tracker,time)
+PlotXY.Tracker<-function(tracker,range=c(0,0),ShowQuality=FALSE,PointSize=0.75){
+  rd<-Tracker.GetRawData(tracker,range)
   
   xlim<-c(min(rd$RelX),max(rd$RelX))
   ylim<-c(min(rd$RelY),max(rd$RelY))
@@ -277,8 +276,8 @@ PlotXY.Tracker<-function(tracker,time=c(0,0),ShowQuality=FALSE,PointSize=0.75){
   x
 }
 
-PlotX.Tracker<-function(tracker,time = c(0,0)){  
-  rd<-Tracker.GetRawData(tracker,time)
+PlotX.Tracker<-function(tracker,range = c(0,0)){  
+  rd<-Tracker.GetRawData(tracker,range)
   tmp2<-rep("Moving",length(rd$X))
   tmp2[rd$Sleeping]<-"Sleeping"
   tmp2[rd$Resting]<-"Resting"
@@ -290,9 +289,9 @@ PlotX.Tracker<-function(tracker,time = c(0,0)){
               geom_line(aes(group=1)) + ylim(tracker$ROI[1]/-2,tracker$ROI[1]/2)
 }
 
-PlotY.Tracker<-function(tracker,time = c(0,0)){    
-  rd<-Tracker.GetRawData(tracker,time)
-    rd<-Tracker.GetRawData(tracker,time)
+PlotY.Tracker<-function(tracker,range = c(0,0)){    
+  rd<-Tracker.GetRawData(tracker,range)
+    rd<-Tracker.GetRawData(tracker,range)
     tmp2<-rep("Moving",length(rd$X))
     tmp2[rd$Sleeping]<-"Sleeping"
     tmp2[rd$Resting]<-"Resting"
@@ -303,8 +302,8 @@ PlotY.Tracker<-function(tracker,time = c(0,0)){
                 geom_line(aes(group=1))) + ylim(tracker$ROI[2]/-2,tracker$ROI[2]/2)
 }
 
-Tracker.BarPlotRegions<-function(tracker,include.none=FALSE,time=c(0,0)){
-  tmp<-Summarize(tracker,time)
+Tracker.BarPlotRegions<-function(tracker,include.none=FALSE,range=c(0,0)){
+  tmp<-Summarize(tracker,range)
   ## remove noon-region columns
   camera<-tmp[1,1]
   id<-tmp[1,2]
@@ -319,7 +318,7 @@ Tracker.BarPlotRegions<-function(tracker,include.none=FALSE,time=c(0,0)){
     barplot(tmp,names.arg=name,main =paste(" ID:",tracker$ID,sep=""),ylab="Frames")
   }
   else {
-    tmp<-Summarize(tracker,time)
+    tmp<-Summarize(tracker,range)
     barplot(tmp$None,names.arg="None")
   }
 }
@@ -382,10 +381,10 @@ SmoothTransitions.Tracker<-function(tracker,minRun=1){
 
 
 
-GetQuartileXPositions.Tracker<-function(tracker,quartile,time=c(0,0)){
+GetQuartileXPositions.Tracker<-function(tracker,quartile,range=c(0,0)){
   if(quartile<1 || quartile>4)
     stop("Bad quartile parameter!")
-  rd<-Tracker.GetRawData(tracker,time)
+  rd<-Tracker.GetRawData(tracker,range)
   Walking<-quantile(rd$RelX[rd$Walking])
   MicroMoving<-quantile(rd$RelX[rd$MicroMoving])
   Resting<-quantile(rd$RelX[rd$Resting])
@@ -416,16 +415,23 @@ GetQuartileXPositions.Tracker<-function(tracker,quartile,time=c(0,0)){
 FinalPI.Tracker<-function(tracker){
   cat("This function not available for this type of tracker")
 }
-
+CumulativePI.Tracker<-function(tracker){
+  cat("This function not available for this type of tracker")
+}
+GetPIData.Tracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
 PIPlots.Tracker<-function(tracker,range=c(0,0)){
   cat("This function not available for this type of tracker")
 }
-
+TimeDependentPIPlots.Tracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
 ## Utility functions
-Tracker.GetRawData<-function(tracker,time=c(0,0)){
+Tracker.GetRawData<-function(tracker,range=c(0,0)){
   rd <-tracker$RawData
-  if(sum(time)!=0) {    
-    rd<- rd[(rd$Minutes>time[1]) & (rd$Minutes<time[2]),]
+  if(sum(range)!=0) {    
+    rd<- rd[(rd$Minutes>range[1]) & (rd$Minutes<range[2]),]
   }
   ## Filter out unwanted data
   if(tracker$Parameters$Filter.Sleep==TRUE)
@@ -434,6 +440,8 @@ Tracker.GetRawData<-function(tracker,time=c(0,0)){
     rd<-rd[rd$DataQuality=="High",]
   rd
 }
+
+
 Tracker.LastSampleData<-function(tracker){
   tmp<-Tracker.GetRawData(tracker)
   nr<-nrow(tmp)

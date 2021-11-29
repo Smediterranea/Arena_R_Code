@@ -36,7 +36,10 @@ ArenaClass<-function(parameters,dirname="Data"){
       nm<-paste("Tracker",i,sep="_")
       roinm<-paste("T",i,sep="_")
       theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
-      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI)
+      theCountingROI<-roi$Name[roi$Type=="Counting"]
+      if(length(theCountingROI)<1)
+        theCountingROI<-"None"
+      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI,theCountingROI)
       arena<-c(arena,setNames(list(nm=tmp),nm))
     }
   }
@@ -58,11 +61,11 @@ Arena.GetTracker<-function(arena,id){
   arena[[tmp]]
 }
 
-GetMeanXPositions.Arena<-function(arena,time=c(0,0)){
+GetMeanXPositions.Arena<-function(arena,range=c(0,0)){
   for(i in arena$Trackers){
     tmp<-paste("Tracker_",i,sep="")
     t<-Arena.GetTracker(arena,i)
-    tmps<-GetMeanXPositions.Tracker(t,time)
+    tmps<-GetMeanXPositions.Tracker(t,range)
     if(exists("result",inherits = FALSE)==TRUE){
       result<-rbind.missing(result,tmps)       
     }
@@ -73,11 +76,11 @@ GetMeanXPositions.Arena<-function(arena,time=c(0,0)){
   result
 }
 
-GetQuartileXPositions.Arena<-function(arena,quartile=1,time=c(0,0)){
+GetQuartileXPositions.Arena<-function(arena,quartile=1,range=c(0,0)){
   for(i in arena$Trackers){
     tmp<-paste("Tracker_",i,sep="")
     t<-Arena.GetTracker(arena,i)
-    tmps<-GetQuartileXPositions.Tracker(t,quartile,time)
+    tmps<-GetQuartileXPositions.Tracker(t,quartile,range)
     if(exists("result",inherits = FALSE)==TRUE){
       result<-rbind.missing(result,tmps)       
     }
@@ -88,11 +91,11 @@ GetQuartileXPositions.Arena<-function(arena,quartile=1,time=c(0,0)){
   result
 }
 
-Summarize.Arena<-function(arena,time=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
+Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
   for(i in arena$Trackers){
     tmp<-paste("Tracker_",i,sep="")
     t<-Arena.GetTracker(arena,i)
-    tmps<-Summarize(t,time,FALSE)
+    tmps<-Summarize(t,range,FALSE)
     if(exists("result",inherits = FALSE)==TRUE){
       ##result<-rbind(result,tmps)       
       result<-rbind.missing(result,tmps)       
@@ -132,7 +135,7 @@ Summarize.Arena<-function(arena,time=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
   result
 }
 
-PlotXY.Arena<-function(arena,time=c(0,0),WriteToPDF=TRUE){
+PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   fname<-"Arena_XYPlots.pdf"
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
@@ -141,14 +144,14 @@ PlotXY.Arena<-function(arena,time=c(0,0),WriteToPDF=TRUE){
   }
   for(i in arena$Trackers){
     tmp<-Arena.GetTracker(arena,i)
-    print(PlotXY(tmp,time))
+    print(PlotXY(tmp,range))
   }
   if(WriteToPDF==TRUE){
     graphics.off()
   }
 }
 
-PlotX.Arena<-function(arena,time=c(0,0),WriteToPDF=TRUE){
+PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   fname<-"Arena_XPlots.pdf"
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
@@ -157,14 +160,14 @@ PlotX.Arena<-function(arena,time=c(0,0),WriteToPDF=TRUE){
   }
   for(i in arena$Trackers){
     tmp<-Arena.GetTracker(arena,i)
-    print(PlotX(tmp,time))
+    print(PlotX(tmp,range))
   }
   if(WriteToPDF==TRUE){
     graphics.off()
   }
 }
 
-PlotX2.Arena<-function(arena,time=c(0,0),WriteToPDF=TRUE){
+PlotX2.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   fname<-"Arena_XPlots2.pdf"
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
@@ -173,7 +176,7 @@ PlotX2.Arena<-function(arena,time=c(0,0),WriteToPDF=TRUE){
   }
   for(i in arena$Trackers){
     tmp<-Arena.GetTracker(arena,i)
-    print(PlotX.Tracker(tmp,time))
+    print(PlotX.Tracker(tmp,range))
   }
   if(WriteToPDF==TRUE){
     graphics.off()
@@ -273,6 +276,13 @@ PIPlots.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   }
 }
 
+
+## Plotting routines that use these functions take longer to make
+## but render MUCH FASTER for pdf plots with  many points.
+## See here for details.https://hopstat.wordpress.com/2014/04/
+## They require ImageMagick installed: https://imagemagick.org/script/download.php#windows
+
+
 mypdf = function(pdfname, mypattern = "MYTEMPPNG", ...) {
   fname = paste0(mypattern, "%05d.png")
   gpat = paste0(mypattern, ".*\\.png")
@@ -286,12 +296,11 @@ mypdf = function(pdfname, mypattern = "MYTEMPPNG", ...) {
 # copts are options to sent to convert
 mydev.off = function(pdfname, mypattern="MYTEMPPNG", copts = "") {
   dev.off()
-  print("Here")
   gpat = paste0(mypattern, ".*\\.png")
   pngs = list.files(path = tempdir(), pattern = gpat, full.names = TRUE)
   mystr = paste(pngs, collapse = " ", sep = "")
-  print(copts)
   pdfname<-paste(getwd(),"/",pdfname,sep="")
-  tmp<-(sprintf("convert %s -quality 100 %s %s", mystr, pdfname, copts))
+  pdfname<-paste("\"",pdfname,"\"",sep="")
+  tmp<-(sprintf("magick convert %s -quality 100 %s %s", mystr, pdfname, copts))
   system(tmp)
 }

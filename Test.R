@@ -1,23 +1,15 @@
 
+rm(list=ls())
+source("ArenaObject.R")
 
 CleanTrackers() 
-p<-ParametersClass.XChoiceTracker()
+p<-ParametersClass.TwoChoiceTracker()
 arena<-ArenaClass(p)
 
+PlotX(arena$Tracker_2)
 
 
-
-t1<-arena$Tracker_1$RawData
-
-
-sleep.possible<-t1$Dist_mm<p$Sleep.Threshold.Distance.mm
-theRuns<-rle(as.character(sleep.possible))
-cumMinRuns<-t1$Minutes[cumsum(theRuns$lengths)]
-RunDurationMin<-cumMinRuns-c(0,cumMinRuns[-length(cumMinRuns)])
-LongEnoughRuns<-RunDurationMin>p$Sleep.Threshold.Min
-LongEnoughSleepRuns<-LongEnoughRuns & as.logical(theRuns$values)
-tmp<-rep(LongEnoughSleepRuns,theRuns$lengths)
-
+unique(arena$Tracker_3$RawData$Region)
 
 
 

@@ -6,8 +6,8 @@ XChoiceTracker.ProcessXTracker<-function(tracker){
 }
 
 
-PlotX.XChoiceTracker<-function(tracker,time = c(0,0)){  
-  rd<-Tracker.GetRawData(tracker,time)
+PlotX.XChoiceTracker<-function(tracker,range = c(0,0)){  
+  rd<-Tracker.GetRawData(tracker,range)
   tmp2<-rep("Moving",length(rd$X))
   tmp2[rd$Sleeping]<-"Sleeping"
   tmp2[rd$Resting]<-"Resting"
@@ -22,5 +22,3 @@ PlotX.XChoiceTracker<-function(tracker,time = c(0,0)){
     geom_vline(data = means, aes(xintercept = Movement.mean,color=Movement),
                linetype = "longdash", size=1) + xlim(tracker$ROI[1]/-2,tracker$ROI[1]/2)
 }
-
-

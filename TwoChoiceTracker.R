@@ -8,7 +8,8 @@ TwoChoiceTracker.ProcessTwoChoiceTracker<-function(tracker){
 TwoChoiceTracker.SetPIData<-function(tracker){
   rd<-Tracker.GetRawData(tracker)
   nm<-names(rd)
-  regions<-as.character(GetRegions(rd))
+  #regions<-as.character(GetRegions(rd))
+  regions<-tracker$CountingROI
   if(length(regions)!=2) {
     stop("Wrong number of regions!") 
   }
@@ -29,7 +30,7 @@ TwoChoiceTracker.SetPIData<-function(tracker){
 
 ## Public Functions
 FinalPI.TwoChoiceTracker<-function(tracker,range=c(0,0)) {
-  tmp<-Tracker.GetPIData(tracker,range)
+  tmp<-GetPIData(tracker,range)
   n<-sum(tmp$PI)
   d<-sum(abs(tmp$PI))    
   if(d==0)
@@ -41,7 +42,7 @@ FinalPI.TwoChoiceTracker<-function(tracker,range=c(0,0)) {
 
 CumulativePI.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   
-  d<-Tracker.GetPIData(tracker,range)
+  d<-GetPIData(tracker,range)
   n<-cumsum(d$PI)
   den<-cumsum(abs(d$PI))
   y<-n/den
@@ -136,10 +137,10 @@ TimeDependentPIPlots.TwoChoiceTracker<-function(tracker,window.size.min=10,step.
   results  
 }
 
-GetPIData.TwoChoiceTracker<-function(tracker,time=c(0,0)){
+GetPIData.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   pd<-tracker$PIData
-  if(sum(time)!=0) {    
-    pd<- pd[(pd$Minutes>time[1]) & (pd$Minutes<time[2]),]
+  if(sum(range)!=0) {    
+    pd<- pd[(pd$Minutes>range[1]) & (pd$Minutes<range[2]),]
   }
   if(tracker$Parameters$Filter.Sleep==TRUE)
     pd<-pd[pd$Sleeping==0,]

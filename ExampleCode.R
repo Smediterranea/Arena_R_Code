@@ -1,4 +1,9 @@
 
+## Note, high density and PI plots require ImageMagik to be installed for 
+## simpler PDF outputs.
+## Get it here: https://imagemagick.org/script/download.php#windows
+
+
 rm(list=ls())
 source("ArenaObject.R")
 
@@ -11,6 +16,9 @@ p<-ParametersClass()
 
 ## Or one that summarizes the distribution across the X axis.
 p<-ParametersClass.XChoiceTracker()
+
+## If you have exactly two counting regions in the experiment (not including "None")
+p<-ParametersClass.TwoChoiceTracker()
 
 ## Check out the parameters and ensure that they are appropriate.
 ## Notably, make sure the mmPerPixel value is correct for your setup.
@@ -53,7 +61,14 @@ PlotX.Tracker(Arena.GetTracker(arena,1))
 ## For position plots, the code will extract the size of the tracking region
 ## from the excel experiment file and use it as the bounds of the plots.
 
-## you can also focus your plots/anaysis by providing a range function.
-Summarize(arena,time=c(30,40))
-PlotX.Tracker(Arena.GetTracker(arena,2),time=c(30,40))
+## you can also focus your plots/anaysis by providing a range function (in minutes).
+Summarize(arena,range=c(30,40))
+PlotX.Tracker(Arena.GetTracker(arena,2),range=c(30,40))
+
+## If you have a two choice experiment there are some additional plots and data.
+## Remember that often Arena plots are output to pdf by default, while Tracker
+## plots are not.
+PIPlots(arena)
+PIPlots(Arena.GetTracker(arena,4))
+TimeDependentPIPlots(Arena.GetTracker(arena,4))
 
