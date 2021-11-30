@@ -280,7 +280,7 @@ PlotXY.Tracker<-function(tracker,range=c(0,0),ShowQuality=FALSE,PointSize=0.75){
     ggtitle(paste("Chamber:",tracker$Chamber," Tracker:",tracker$ID,sep="")) +
     xlab("XPos (mm)") + ylab("YPos (mm)") + xlim(xlims) +
     ylim(ylims)
-  x
+  print(x)
 }
 
 PlotX.Tracker<-function(tracker,range = c(0,0)){  

@@ -6,7 +6,7 @@ CleanTrackers()
 p<-ParametersClass.TwoChoiceTracker()
 arena<-ArenaClass(p)
 
-PlotX(arena$Tracker_2)
+PlotX(arena)
 
 
 unique(arena$Tracker_3$RawData$Region)

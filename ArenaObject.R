@@ -106,7 +106,7 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
   }
   if(ShowPlot==TRUE){
     if(WriteToPDF==TRUE) {
-      fname<-"Arena_SummaryPlots.pdf"
+      fname<-paste("./",arena$Name,"/Arena_SummaryPlots.pdf",sep="")
       pdf(fname,paper="USr",onefile=TRUE)
       par(mfrow=c(3,2))
     }
@@ -136,50 +136,56 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
 }
 
 PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-"Arena_XYPlots.pdf"
+  fname<-paste("./",arena$Name,"/Arena_XY.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
-    pdf(fname,paper="letter",onefile=TRUE)
+    #pdf(fname,paper="letter",onefile=TRUE)
+    mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
   for(i in arena$Trackers){
     tmp<-Arena.GetTracker(arena,i)
-    print(PlotXY(tmp,range))
+    PlotXY(tmp,range)
   }
   if(WriteToPDF==TRUE){
-    graphics.off()
+    #graphics.off()
+    mydev.off(fname)
   }
 }
 
 PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-"Arena_XPlots.pdf"
+  fname<-paste("./",arena$Name,"/Arena_XPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
-    pdf(fname,paper="USr",onefile=TRUE)
+    #pdf(fname,paper="USr",onefile=TRUE)
+    mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
   for(i in arena$Trackers){
     tmp<-Arena.GetTracker(arena,i)
-    print(PlotX(tmp,range))
+    PlotX(tmp,range)
   }
   if(WriteToPDF==TRUE){
-    graphics.off()
+    #graphics.off()
+    mydev.off(fname)
   }
 }
 
 PlotX2.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-"Arena_XPlots2.pdf"
+  fname<-paste("./",arena$Name,"/Arena_XPlots2.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
-    pdf(fname,paper="USr",onefile=TRUE)
+    #pdf(fname,paper="USr",onefile=TRUE)
+    mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
   for(i in arena$Trackers){
     tmp<-Arena.GetTracker(arena,i)
-    print(PlotX.Tracker(tmp,range))
+    PlotX.Tracker(tmp,range)
   }
   if(WriteToPDF==TRUE){
-    graphics.off()
+    #graphics.off()
+    mydev.off(fname)
   }
 }
 
@@ -262,7 +268,7 @@ AnalyzeTransitions.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE){
 }
 
 PIPlots.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-"Arena_PIPlots.pdf"
+  fname<-paste("./",arena$Name,"/Arena_PIPlots.pdf",sep="")
   if(WriteToPDF==TRUE) {
     ##mypdf(fname,paper="letter",onefile=TRUE)
     mypdf(fname,res = 600, height = 11, width = 9, units = "in")
