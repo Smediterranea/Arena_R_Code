@@ -292,16 +292,13 @@ PlotX.Tracker<-function(tracker,range = c(0,0)){
   
   Movement<-factor(tmp2)
   ylims<-c(tracker$ROI[1]/-2,tracker$ROI[1]/2)*tracker$Parameters$mmPerPixel
-  qplot(Minutes, Xpos_mm, data=rd,color=Movement,
-              xlab="Minutes", ylab="XPos (mm)") + ggtitle(paste(" ID:",tracker$ID,sep="")) + 
-              geom_line(aes(group=1)) + ylim(ylims) 
+  print(ggplot(rd, aes(Minutes, Xpos_mm),
+         xlab="Minutes", ylab="XPos (mm)") + ggtitle(paste(" ID:",tracker$ID,sep="")) + 
+    geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes,default=0), ymin = -Inf, ymax = Inf, fill = factor(Indicator)), show.legend=F)+  
+    scale_fill_manual(values = alpha(c("gray", "red"), .07)) +
+    geom_line(aes(group=1,color=Movement),size=2) + ylim(ylims))
               
 }
-
-#qplot(Minutes, RelX, data=rd,
-#      xlab="Minutes", ylab="XPos") + ggtitle(paste(" ID:",tracker$ID,sep="")) + 
-#  geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes), ymin = -Inf, ymax = Inf, fill = Indicator), alpha = 0.5)+          
-#  geom_line(aes(group=1,color=Movement)) + ylim(tracker$ROI[1]/-2,tracker$ROI[1]/2) 
 
 PlotY.Tracker<-function(tracker,range = c(0,0)){    
   rd<-Tracker.GetRawData(tracker,range)
@@ -312,9 +309,11 @@ PlotY.Tracker<-function(tracker,range = c(0,0)){
     tmp2[rd$MicroMoving]<-"Micromoving"
     Movement<-factor(tmp2)
     ylims<-c(tracker$ROI[2]/-2,tracker$ROI[2]/2)*tracker$Parameters$mmPerPixel
-    print(qplot(Minutes, Ypos_mm, data=rd, color=Movement,
-                xlab="Minutes", ylab="YPos (mm)")+ ggtitle(paste(" ID:",tracker$ID,sep="")) + 
-                geom_line(aes(group=1))) + ylim(ylim)
+    print(ggplot(rd, aes(Minutes, Ypos_mm),
+            xlab="Minutes", ylab="YPos (mm)") + ggtitle(paste(" ID:",tracker$ID,sep="")) + 
+            geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes,default=0), ymin = -Inf, ymax = Inf, fill = factor(Indicator)), show.legend=F)+  
+            scale_fill_manual(values = alpha(c("gray", "red"), .07)) +
+            geom_line(aes(group=1,color=Movement),size=2) + ylim(ylims))
 }
 
 Tracker.BarPlotRegions<-function(tracker,include.none=FALSE,range=c(0,0)){
@@ -394,8 +393,6 @@ SmoothTransitions.Tracker<-function(tracker,minRun=1){
   tracker
 }
 
-
-
 GetQuartileXPositions.Tracker<-function(tracker,quartile,range=c(0,0)){
   if(quartile<1 || quartile>4)
     stop("Bad quartile parameter!")
@@ -424,7 +421,6 @@ GetQuartileXPositions.Tracker<-function(tracker,quartile,range=c(0,0)){
   names(tmp)<-c("ID","Walking","MicroMoving","Resting","Sleeping","Total")
   tmp
 }
-
 
 ## Functions that just catch misapplied higher functions
 FinalPI.Tracker<-function(tracker){

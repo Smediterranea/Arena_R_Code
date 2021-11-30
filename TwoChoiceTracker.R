@@ -18,8 +18,8 @@ TwoChoiceTracker.SetPIData<-function(tracker){
  
   pi<-a-b  
   
-  rd<-data.frame(rd$Minutes,a,b,pi)
-  names(rd)<-c("Minutes",regions[1],regions[2],"PI")
+  rd<-data.frame(rd$Minutes,a,b,pi,rd$Indicator)
+  names(rd)<-c("Minutes",regions[1],regions[2],"PI","Indicator")
   
   row.names(rd)<-NULL  
   tracker$PIData<-rd
@@ -60,8 +60,8 @@ CumulativePI.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   CumPosA<-cumsum(dd$Region==regions[1])
   CumPosB<-cumsum(dd$Region==regions[2])
   
-  result<-data.frame(d$Minutes,PI,CumPosA,CumPosB)
-  names(result)<-c("Minutes","CumPI",regions[1],regions[2])
+  result<-data.frame(d$Minutes,PI,CumPosA,CumPosB,d$Indicator)
+  names(result)<-c("Minutes","CumPI",regions[1],regions[2],"Indicator")
   result
 }
 
@@ -71,17 +71,21 @@ PIPlots.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   regions<-colnames(pd)
   regions<-regions[c(3,4)]
   
-  cumsums<-data.frame(c(pd[,1],pd[,1]),c(pd[,3],pd[,4]),rep(c(nms[3],nms[4]),c(length(pd[,1]),length(pd[,1]))))
-  names(cumsums)<-c("Minutes","CumSum","Region")
+  cumsums<-data.frame(c(pd[,1],pd[,1]),c(pd[,3],pd[,4]),rep(c(nms[3],nms[4]),c(length(pd[,1]),length(pd[,1]))),c(pd[,5],pd[,5]))
+  names(cumsums)<-c("Minutes","CumSum","Region","Indicator")
   
   ymax<-max(pd[c(3,4)])
   x<-ggplot(cumsums) + 
+    geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes,default=0), ymin = -Inf, ymax = Inf, fill = factor(Indicator)), show.legend=F)+  
+    scale_fill_manual(values = alpha(c("gray", "red"), .07)) +
     geom_point(aes(Minutes,CumSum,color=Region)) +
     geom_line(aes(Minutes,CumSum,color=Region)) +
     ggtitle(paste("Tracker:",tracker$ID, "   Region Counts",sep="")) +
     xlab("Minutes") + ylab("Frames") + ylim(0,ymax)
     
   y<-ggplot(pd) + 
+    geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes,default=0), ymin = -Inf, ymax = Inf, fill = factor(Indicator)), show.legend=F)+  
+    scale_fill_manual(values = alpha(c("gray", "red"), .07)) +
     geom_point(aes(Minutes,CumPI)) +
     geom_line(aes(Minutes,CumPI)) +
     ggtitle(paste("Tracker:",tracker$ID, "   Cumulative PI",sep="")) +
@@ -98,12 +102,13 @@ TimeDependentPIPlots.TwoChoiceTracker<-function(tracker,window.size.min=10,step.
   ## Get latest minute possible
   high<-floor(Tracker.LastSampleData(tracker)$Minutes)
   tmp<-seq(low,high,by=step.size.min)
-  results<-data.frame(matrix(rep(-99,(length(tmp)*4)),ncol=4))
+  results<-data.frame(matrix(rep(-99,(length(tmp)*5)),ncol=5))
   
-  names(results)<-c("Minutes","PI","CumLicksA","CumLicksB")
+  names(results)<-c("Minutes","PI","CumLicksA","CumLicksB","Indicator")
   
   for(i in 1:length(tmp)){
     results[i,1]<-tmp[i]
+    
     
     pp<-CumulativePI(tracker,c(tmp[i]-window.size.min,tmp[i]))        
     ii<-nrow(pp)
@@ -113,7 +118,7 @@ TimeDependentPIPlots.TwoChoiceTracker<-function(tracker,window.size.min=10,step.
     results[i,3]<-pp[ii,3]
     results[i,4]<-pp[ii,4]
     results[i,2]<-pp[ii,2]
-  
+    results[i,5]<-mean(pp[,5])
   }  
   
   tmp<-results[,3]+results[,4]
@@ -124,13 +129,15 @@ TimeDependentPIPlots.TwoChoiceTracker<-function(tracker,window.size.min=10,step.
   
   results<-data.frame(results,Size,NObs)
   
-  x<-ggplot(results, aes(Minutes,PI,color=Size,label=NObs))+
+  x<-ggplot(results, aes(Minutes,PI,label=NObs))+
+    geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes,default=0), ymin = -Inf, ymax = Inf, fill = Indicator), alpha=0.1)+  
+    scale_fill_continuous(name="Light",type = "viridis")+
     geom_line() +
-    geom_point(size=Size) +
+    geom_point(size=Size,color=Size) +
+    scale_colour_gradient2(name="Test") +
     geom_text(check_overlap = TRUE, vjust="inward",hjust="inward", color="red")+
     xlim(Tracker.FirstSampleData(tracker)$Minutes,Tracker.LastSampleData(tracker)$Minutes) +
     ylim(-1,1) +
-    scale_colour_gradient2() +
     ggtitle(paste("ID:",tracker$ID,"    Time-Dependent PI"))
     
   print(x)
