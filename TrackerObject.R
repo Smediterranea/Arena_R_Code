@@ -65,8 +65,8 @@ Tracker.Calculate.MovementTypes<-function(tracker){
 }
 
 Tracker.Calculate.SpeedsAndFeeds<-function(tracker){
-  tnames<-c(names(tracker$RawData),"DeltaX_mm","DeltaY_mm","Dist_mm","Speed_mm_s","ModifiedSpeed_mm_s")
-  new.data.frame<-data.frame(tracker$RawData[1,],c(1),c(1),c(1),c(1),c(1)) # Temp holder
+  tnames<-c(names(tracker$RawData),"Xpos_mm","Ypos_mm","DeltaX_mm","DeltaY_mm","Dist_mm","Speed_mm_s","ModifiedSpeed_mm_s")
+  new.data.frame<-data.frame(tracker$RawData[1,],c(1),c(1),c(1),c(1),c(1),c(1),c(1)) # Temp holder
   names(new.data.frame)<-tnames
   tdata<-tracker$RawData
   tmp<-length(tdata$X) 
@@ -86,10 +86,13 @@ Tracker.Calculate.SpeedsAndFeeds<-function(tracker){
     speed[1]<-0
     
     ## For more complex speed transformations, add a function here
-    modifiedSpeed_mm_s<-speed  
+    ttt<-ksmooth(tdata$Minutes,speed)$y
+    modifiedSpeed_mm_s<-ttt
+    ###modifiedSpeed_mm_s<-speed  
     
-    
-    tdata<-data.frame(tdata,delta.x.mm,delta.y.mm,dist.mm,speed,modifiedSpeed_mm_s)
+    xpos_mm<-tdata$RelX*tracker$Parameters$mmPerPixel
+    ypos_mm<-tdata$RelY*tracker$Parameters$mmPerPixel
+    tdata<-data.frame(tdata,xpos_mm,ypos_mm,delta.x.mm,delta.y.mm,dist.mm,speed,modifiedSpeed_mm_s)
     names(tdata)<-tnames
     new.data.frame<-rbind(new.data.frame,tdata)
     
@@ -101,28 +104,30 @@ Tracker.Calculate.SpeedsAndFeeds<-function(tracker){
 
 ## Note that this functions requires that Speeds and Feeds and Movement Types
 ## are calculated first!
+
+## Calculating sleep is a hard and maybe ill-defined problem.
+## for now I will assume sleeping is moving between 0 and the lowest
+## micromovements per sec for 5min in a row.
+## Note that a consistently slow moving fly will therefore be considered
+## sleeping even though it might slowly traverse the entire arena!
+
+## This basically means a fly that is resting for 5min or more is sleeping. 
 Tracker.Calculate.Sleep<-function(tracker){
   tnames<-c(names(tracker$RawData),"Sleeping")
   t1<-tracker$RawData
   p<-tracker$Parameters
   
-  ## This won't work because with higher frame rates, flies 
-  ## don't move much per frame, so you need to check total
-  ## distance over every 5min window!  
-  #sleep.possible<-t1$Dist_mm<p$Sleep.Threshold.Distance.mm
-  #theRuns<-rle(as.character(sleep.possible))
-  #cumMinRuns<-t1$Minutes[cumsum(theRuns$lengths)]
-  #RunDurationMin<-cumMinRuns-c(0,cumMinRuns[-length(cumMinRuns)])
-  #LongEnoughRuns<-RunDurationMin>p$Sleep.Threshold.Min
-  #LongEnoughSleepRuns<-LongEnoughRuns & as.logical(theRuns$values)
-  #sleep<-rep(LongEnoughSleepRuns,theRuns$lengths)
-  
-  sleep<-rep(FALSE,length(t1$ObjectID))
+  ## This won't work well with higher frame rates. Error will 
+  ## blow up in the conversion of distance/frame to distance/sec.
+  theRuns<-rle(t1$Resting)
+  cumMinRuns<-t1$Minutes[cumsum(theRuns$lengths)]
+  RunDurationMin<-cumMinRuns-c(0,cumMinRuns[-length(cumMinRuns)])
+  LongEnoughRuns<-RunDurationMin>p$Sleep.Threshold.Min
+  LongEnoughSleepRuns<-LongEnoughRuns & as.logical(theRuns$values)
+  sleep<-rep(LongEnoughSleepRuns,theRuns$lengths)
   
   t1<-data.frame(t1,sleep)
   names(t1)<-tnames
-  
-  tracker$RawData<-t1
     
   #Sleep trumps everything else
   tracker$RawData$Walking[tracker$RawData$Sleeping]<-FALSE
@@ -206,11 +211,11 @@ Tracker.GetType<-function(tracker){
 
 GetMeanXPositions.Tracker<-function(tracker,range=c(0,0)){
   rd<-Tracker.GetRawData(tracker,range)
-  Walking<-mean(rd$RelX[rd$Walking])
-  MicroMoving<-mean(rd$RelX[rd$MicroMoving])
-  Resting<-mean(rd$RelX[rd$Resting])
-  Sleeping<-mean(rd$RelX[rd$Sleeping])
-  Total<-mean(rd$RelX)
+  Walking<-mean(rd$Xpos_mm[rd$Walking])
+  MicroMoving<-mean(rd$Xpos_mm[rd$MicroMoving])
+  Resting<-mean(rd$Xpos_mm[rd$Resting])
+  Sleeping<-mean(rd$Xpos_mm[rd$Sleeping])
+  Total<-mean(rd$Xpos_mm)
   
   tmp<-data.frame(tracker$ID,Walking,MicroMoving,Resting,Sleeping,Total)
   names(tmp)<-c("ID","Walking","MicroMoving","Resting","Sleeping","Total")
@@ -267,12 +272,14 @@ PlotXY.Tracker<-function(tracker,range=c(0,0),ShowQuality=FALSE,PointSize=0.75){
     tmp2[rd$DataQuality!="High"]<-"LowQuality"
   }
   Movement<-factor(tmp2)
-  x<-ggplot(rd,aes(RelX,RelY,color=Movement)) + 
+  xlims<-c(tracker$ROI[1]/-2,tracker$ROI[1]/2)*tracker$Parameters$mmPerPixel
+  ylims<-c(tracker$ROI[2]/-2,tracker$ROI[2]/2)*tracker$Parameters$mmPerPixel
+  x<-ggplot(rd,aes(Xpos_mm,Ypos_mm,color=Movement)) + 
     geom_point() + 
     coord_fixed() + 
     ggtitle(paste("Chamber:",tracker$Chamber," Tracker:",tracker$ID,sep="")) +
-    xlab("XPos") + ylab("YPos") + xlim(tracker$ROI[1]/-2,tracker$ROI[1]/2) +
-    ylim(tracker$ROI[2]/-2,tracker$ROI[2]/2)
+    xlab("XPos (mm)") + ylab("YPos (mm)") + xlim(xlims) +
+    ylim(ylims)
   x
 }
 
@@ -284,10 +291,17 @@ PlotX.Tracker<-function(tracker,range = c(0,0)){
   tmp2[rd$MicroMoving]<-"Micromoving"
   
   Movement<-factor(tmp2)
-  qplot(Minutes, RelX, data=rd, color=Movement,
-              xlab="Minutes", ylab="XPos") + ggtitle(paste(" ID:",tracker$ID,sep="")) + 
-              geom_line(aes(group=1)) + ylim(tracker$ROI[1]/-2,tracker$ROI[1]/2)
+  ylims<-c(tracker$ROI[1]/-2,tracker$ROI[1]/2)*tracker$Parameters$mmPerPixel
+  qplot(Minutes, Xpos_mm, data=rd,color=Movement,
+              xlab="Minutes", ylab="XPos (mm)") + ggtitle(paste(" ID:",tracker$ID,sep="")) + 
+              geom_line(aes(group=1)) + ylim(ylims) 
+              
 }
+
+#qplot(Minutes, RelX, data=rd,
+#      xlab="Minutes", ylab="XPos") + ggtitle(paste(" ID:",tracker$ID,sep="")) + 
+#  geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes), ymin = -Inf, ymax = Inf, fill = Indicator), alpha = 0.5)+          
+#  geom_line(aes(group=1,color=Movement)) + ylim(tracker$ROI[1]/-2,tracker$ROI[1]/2) 
 
 PlotY.Tracker<-function(tracker,range = c(0,0)){    
   rd<-Tracker.GetRawData(tracker,range)
@@ -297,9 +311,10 @@ PlotY.Tracker<-function(tracker,range = c(0,0)){
     tmp2[rd$Resting]<-"Resting"
     tmp2[rd$MicroMoving]<-"Micromoving"
     Movement<-factor(tmp2)
-    print(qplot(Minutes, RelY, data=rd, color=Movement,
-                xlab="Minutes", ylab="YPos")+ ggtitle(paste(" ID:",tracker$ID,sep="")) + 
-                geom_line(aes(group=1))) + ylim(tracker$ROI[2]/-2,tracker$ROI[2]/2)
+    ylims<-c(tracker$ROI[2]/-2,tracker$ROI[2]/2)*tracker$Parameters$mmPerPixel
+    print(qplot(Minutes, Ypos_mm, data=rd, color=Movement,
+                xlab="Minutes", ylab="YPos (mm)")+ ggtitle(paste(" ID:",tracker$ID,sep="")) + 
+                geom_line(aes(group=1))) + ylim(ylim)
 }
 
 Tracker.BarPlotRegions<-function(tracker,include.none=FALSE,range=c(0,0)){
@@ -385,11 +400,11 @@ GetQuartileXPositions.Tracker<-function(tracker,quartile,range=c(0,0)){
   if(quartile<1 || quartile>4)
     stop("Bad quartile parameter!")
   rd<-Tracker.GetRawData(tracker,range)
-  Walking<-quantile(rd$RelX[rd$Walking])
-  MicroMoving<-quantile(rd$RelX[rd$MicroMoving])
-  Resting<-quantile(rd$RelX[rd$Resting])
-  Sleeping<-quantile(rd$RelX[rd$Sleeping])
-  Total<-quantile(rd$RelX)
+  Walking<-quantile(rd$Xpos_mm[rd$Walking])
+  MicroMoving<-quantile(rd$Xpos_mm[rd$MicroMoving])
+  Resting<-quantile(rd$Xpos_mm[rd$Resting])
+  Sleeping<-quantile(rd$Xpos_mm[rd$Sleeping])
+  Total<-quantile(rd$Xpos_mm)
   
   if(quartile>-1 && quartile<5) {
     Walking<-Walking[quartile+1]
