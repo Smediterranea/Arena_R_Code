@@ -5,7 +5,7 @@ ParametersClass=function(){
   Filter.Tracker.Error=0
   Sleep.Threshold.Distance.mm=1
   Sleep.Threshold.Min=5
-  mmPerPixel=0.1
+  mmPerPixel=0.056
   MicroMove.mm.sec<-c(0.2,2.0)
   Walking.mm.sec<-2.0
   TType="ArenaTracker"
