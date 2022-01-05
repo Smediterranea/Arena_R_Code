@@ -1,6 +1,19 @@
 require(plyr)
 
 XChoiceTracker.ProcessXTracker<-function(tracker){
+  if(is.null(tracker$ExpDesign)){
+    stop("Two choice tracker requires experimental design.")
+  }
+  
+  a<-"ID" %in% colnames(tracker$ExpDesign)   
+  b<-"Region" %in% colnames(tracker$ExpDesign)   
+  c<-"Treatment" %in% colnames(tracker$ExpDesign)   
+  d<-"PIMult" %in% colnames(tracker$ExpDesign)   
+  e<-c(a,b,c,d)
+  if(sum(e)<3){
+    stop("Experimental design file requires ID, Region, PiMult, and Treatments columns.")
+  }
+ 
   class(tracker)<-c("XChoiceTracker",class(tracker))
   tracker
 }

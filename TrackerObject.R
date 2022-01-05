@@ -7,7 +7,7 @@ require(markovchain)
 require(Gmisc)
 
 
-TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI){
+TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,expDesign){
   if (!is.numeric(id))
     stop("invalid arguments") 
   
@@ -16,15 +16,26 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI){
   tmp<-data
   tmp<-subset(tmp,tmp$ObjectID==id)
   tmp<-droplevels(tmp)
-  ## Transform the mSec so that the first observation is 0
-  tmp$MSec<-tmp$MSec - tmp$MSec[1]
-  Minutes<-tmp$MSec/(1000*60)
+  
+  if(is.na(parameters$FPS)){
+    ## Transform the mSec so that the first observation is 0
+    tmp$MSec<-tmp$MSec - tmp$MSec[1]
+    Minutes<-tmp$MSec/(1000*60)
+  }
+  else {    
+    min = 1.0/(parameters$FPS*60)
+    Minutes <- seq(from=0,by=min,length.out=length(tmp$MSec))
+  }
   
   tmp<-data.frame(tmp,Minutes)
   tmp$Region<-factor(tmp$Region)
   tmp$DateQuality<-factor(tmp$DataQuality)
-  
-  data=list(ID=id,ROI=roisize,CountingROI=theCountingROI,Parameters=parameters,RawData=tmp)
+
+  if(!is.null(expDesign)){
+    expDesign=subset(expDesign,expDesign$ID==id)
+  }
+
+  data=list(ID=id,ROI=roisize,CountingROI=theCountingROI,Parameters=parameters,RawData=tmp,ExpDesign=expDesign)
   class(data)="Tracker"
   
   ## The class is done, now can add default operations to it
@@ -86,10 +97,16 @@ Tracker.Calculate.SpeedsAndFeeds<-function(tracker){
     speed[1]<-0
     
     ## For more complex speed transformations, add a function here
-    ttt<-ksmooth(tdata$Minutes,speed)$y
-    modifiedSpeed_mm_s<-ttt
-    ###modifiedSpeed_mm_s<-speed  
+    if(tracker$Parameters$Smooth.Speed.Data){
+      ttt<-ksmooth(tdata$Minutes,speed)$y    
+      modifiedSpeed_mm_s<-ttt
+      
+    }
+    else {
+      modifiedSpeed_mm_s<-speed  
+    }
     
+    modifiedSpeed_mm_s[is.na(modifiedSpeed_mm_s)]<-0
     xpos_mm<-tdata$RelX*tracker$Parameters$mmPerPixel
     ypos_mm<-tdata$RelY*tracker$Parameters$mmPerPixel
     tdata<-data.frame(tdata,xpos_mm,ypos_mm,delta.x.mm,delta.y.mm,dist.mm,speed,modifiedSpeed_mm_s)

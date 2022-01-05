@@ -11,6 +11,7 @@ GetRegions<-function(data){
 }
 
 ## Type specific functions
+Summarize<-function(tracker, ...) UseMethod("Summarize",tracker)
 FinalPI<-function(tracker, ...) UseMethod("FinalPI",tracker)
 CumulativePI<-function(tracker, ...) UseMethod("CumulativePI",tracker)
 PIPlots<-function(tracker, ...) UseMethod("PIPlots",tracker)

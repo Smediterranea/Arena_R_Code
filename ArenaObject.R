@@ -20,7 +20,6 @@ ArenaClass<-function(parameters,dirname="Data"){
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}))
 
   trackers<-unique(theData$ObjectID)
- 
   
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
@@ -28,10 +27,20 @@ ArenaClass<-function(parameters,dirname="Data"){
   if(length(file)>1)
     stop("Only allowed one experiment file in the directory")
   file<-paste(datadir,file,sep="")
-  roi<-read_excel(file,sheet="ROI")
+  roi <- read_excel(file, sheet = "ROI")
   
-  arena<-list(Name=dirname,Trackers=trackers,ROI=roi)
+  ## Look for experimental design file
+  files <- list.files(path = datadir, pattern = "ExpDesign.csv")  
+  if (length(files) < 1) {
+    expDesign <- NULL
+  }
+  else {
+    files <- paste(datadir, files, sep = "")    
+    expDesign <- read.csv(files[1])    
+  }
   
+  arena <- list(Name = dirname, Trackers = trackers, ROI = roi, ExpDesign=expDesign)
+
   if(length(trackers)>0){
     for(i in trackers){
       nm<-paste("Tracker",i,sep="_")
@@ -40,7 +49,7 @@ ArenaClass<-function(parameters,dirname="Data"){
       theCountingROI<-roi$Name[roi$Type=="Counting"]
       if(length(theCountingROI)<1)
         theCountingROI<-"None"
-      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI,theCountingROI)
+      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI,theCountingROI,expDesign)
       arena<-c(arena,setNames(list(nm=tmp),nm))
     }
   }
@@ -288,7 +297,6 @@ PIPlots.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
 ## but render MUCH FASTER for pdf plots with  many points.
 ## See here for details.https://hopstat.wordpress.com/2014/04/
 ## They require ImageMagick installed: https://imagemagick.org/script/download.php#windows
-
 
 mypdf = function(pdfname, mypattern = "MYTEMPPNG", ...) {
   fname = paste0(mypattern, "%05d.png")
