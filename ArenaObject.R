@@ -319,3 +319,53 @@ mydev.off = function(pdfname, mypattern="MYTEMPPNG", copts = "") {
   tmp<-(sprintf("magick convert %s -quality 100 %s %s", mystr, pdfname, copts))
   system(tmp)
 }
+
+Trim.Arena<-function(arena, matingtime_min, duration_min){
+  for(i in arena$Trackers){
+    tmp<-paste("Tracker_",i,sep="")
+    t<-Arena.GetTracker(arena,i)
+    tmp2 <- GetFirstRegionDuration.Tracker(t, matingtime_min)
+    tmp2 <- tmp2[, 4]
+    tmp3<-tmp2+duration_min
+    t$RawData<-subset(t$RawData,t$RawData$Minutes>tmp2 & t$RawData$Minutes<=tmp3)
+    if(nrow(t$RawData)<1){
+      mess<-paste("**Warning! Tracker ",i,"has no remaining data**\n")
+      cat(mess)
+    }
+    if("TwoChoiceTracker" %in% class(t)){
+      t$PIData<-subset(t$PIData,t$PIData$Minutes>tmp2 & t$PIData$Minutes<=tmp3)
+    }
+    arena[[tmp]]<-t
+  }
+  arena
+}
+
+DeleteTracker.Arena<-function(arena, trackerID){  
+  tmp2<-paste("Tracker_",trackerID,sep="")  
+  arena[[tmp2]]<-NULL
+  arena$Trackers<-arena$Trackers[arena$Trackers!=trackerID]  
+  arena
+}
+
+
+ReportDurations.Arena<-function(arena){
+  result<-data.frame(matrix(c(0,0,0),nrow=1))
+  names(result)<-c("Tracker","StartTime","Duration")  
+  index<-1
+    for(j in arena$Trackers){
+      t<-Arena.GetTracker(arena,j)
+      tmp<-t$RawData
+      if(nrow(tmp)<2) {
+        start<-NA
+        duration<-NA
+      }
+      else {
+        start<-tmp$Minutes[1]
+        duration<-tmp$Minutes[length(tmp$Minutes)]-start
+      }
+      result[index,]<-c(j,start,duration)
+      index<-index+1
+    }  
+  result
+}
+

@@ -24,7 +24,43 @@ XChoiceTracker.SetXData<-function(tracker){
   tracker$RawData$RelX <- tracker$RawData$RelX * pimult
   tracker
 }
+Summarize.XChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){  
+  rd<-Tracker.GetRawData(tracker,range)  
+  
+  ## Now get the summary on the rest
+  total.min<-rd$Minutes[nrow(rd)]-rd$Minutes[1]
+  total.dist<-(rd$TotalDistance[nrow(rd)]-rd$TotalDistance[1])*tracker$Parameters$mmPerPixel  
+  perc.Sleeping<-sum(rd$Sleeping)/length(rd$Sleeping)
+  perc.Walking<-sum(rd$Walking)/length(rd$Walking)
+  perc.MicroMoving<-sum(rd$MicroMoving)/length(rd$MicroMoving)
+  perc.Resting<-sum(rd$Resting)/length(rd$Resting)
+  
+  avg.speed<-mean(rd$ModifiedSpeed_mm_s)
+  
+  treatments<-unique(tracker$ExpDesign$Treatment)    
+  if(length(treatments)!=2) {    
+    stop("Wrong number of treatments!") 
+  }
 
+  treatments<-c(treatments,"None")
+  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ID == tracker$ID)      
+  a<-sum(rd$Region==tmp$Region[tmp$Treatment==treatments[1]])
+  b<-sum(rd$Region==tmp$Region[tmp$Treatment==treatments[2]])
+  c<-sum(rd$Region==treatments[3])
+  
+  r.tmp<-matrix(c(a,b,c),nrow=1)
+  
+  results<-data.frame(tracker$ID,total.min,total.dist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,avg.speed,range[1],range[2],r.tmp)
+  names(results)<-c("ID","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
+  
+  if(ShowPlot){
+    tmp<-data.frame(c(results$PercWalking,results$PercMicroMoving,results$PercResting,results$PercSleeping),rep("one",4), factor(c("Walking","MicroMoving","Resting","Sleeping")))
+    names(tmp)<-c("a","b","Movement")
+    print(qplot(x=b,y=a,data=tmp, fill=(Movement)) + geom_bar(stat="identity")+ xlab("Treatment") + ylab("Percentage")) 
+  }
+  
+  results
+}
 PlotX.XChoiceTracker<-function(tracker,range = c(0,0)){  
   rd<-Tracker.GetRawData(tracker,range)
   tmp2<-rep("Moving",length(rd$X))
@@ -41,4 +77,21 @@ PlotX.XChoiceTracker<-function(tracker,range = c(0,0)){
     ggtitle(paste(" Tracker:",tracker$ID,sep="")) +
     geom_vline(data = means, aes(xintercept = Movement.mean,color=Movement),
                linetype = "longdash", size=1) + xlim(xlims)
+}
+
+## Functions that just catch misapplied higher functions
+FinalPI.XChoiceTracker<-function(tracker){
+  cat("This function not available for this type of tracker")
+}
+CumulativePI.XChoiceTracker<-function(tracker){
+  cat("This function not available for this type of tracker")
+}
+GetPIData.XChoiceTracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
+PIPlots.XChoiceTracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
+TimeDependentPIPlots.XChoiceTracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
 }

@@ -23,6 +23,13 @@ p<-ParametersClass.XChoiceTracker()
 ## If you have exactly two counting regions in the experiment (not including "None")
 p<-ParametersClass.TwoChoiceTracker()
 
+## If you are analyzing a movie, then you need to specify the FPS
+## that was used when the movie was recorded!
+## If your data were collected with a live (i.e., FLIR) camera,
+## then FPS should remain NA because the interframe time is 
+## saved in the output file by DTrack.
+p<-Parameters.SetParameter(p,FPS=2)
+
 ## Check out the parameters and ensure that they are appropriate.
 ## Notably, make sure the mmPerPixel value is correct for your setup.
 ## Note that sleep is not currently implemented.
@@ -36,7 +43,7 @@ p<-ParametersClass.TwoChoiceTracker()
 ## a parameter to the ArenaClass function
 ## ArenaClass<-function(parameters,dirname="Data")
 
-arena<-ArenaClass(p)
+arena<-ArenaClass(p,dirname="Data2")
 
 ## Basic movement information and region summaries can be obtained from
 Summarize(arena)
