@@ -2,7 +2,7 @@ require(plyr)
 
 XChoiceTracker.ProcessXTracker<-function(tracker){
   if(is.null(tracker$ExpDesign)){
-    stop("Two choice tracker requires experimental design.")
+    stop("X choice tracker requires experimental design.")
   }
   
   a<-"ID" %in% colnames(tracker$ExpDesign)   
@@ -10,14 +10,20 @@ XChoiceTracker.ProcessXTracker<-function(tracker){
   c<-"Treatment" %in% colnames(tracker$ExpDesign)   
   d<-"PIMult" %in% colnames(tracker$ExpDesign)   
   e<-c(a,b,c,d)
-  if(sum(e)<3){
+  if(sum(e)<4){
     stop("Experimental design file requires ID, Region, PiMult, and Treatments columns.")
   }
- 
+  tracker <- XChoiceTracker.SetXData(tracker)
   class(tracker)<-c("XChoiceTracker",class(tracker))
   tracker
 }
 
+XChoiceTracker.SetXData<-function(tracker){
+  ## This will use the PI-Multiplier to adjust all X values.
+  pimult <- tracker$ExpDesign$PIMult[tracker$ExpDesign$ID == tracker$ID]  
+  tracker$RawData$RelX <- tracker$RawData$RelX * pimult
+  tracker
+}
 
 PlotX.XChoiceTracker<-function(tracker,range = c(0,0)){  
   rd<-Tracker.GetRawData(tracker,range)

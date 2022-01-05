@@ -29,7 +29,7 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,ex
   
   tmp<-data.frame(tmp,Minutes)
   tmp$Region<-factor(tmp$Region)
-  tmp$DateQuality<-factor(tmp$DataQuality)
+  tmp$DataQuality<-factor(tmp$DataQuality)
 
   if(!is.null(expDesign)){
     expDesign=subset(expDesign,expDesign$ID==id)
@@ -38,20 +38,20 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,ex
   data=list(ID=id,ROI=roisize,CountingROI=theCountingROI,Parameters=parameters,RawData=tmp,ExpDesign=expDesign)
   class(data)="Tracker"
   
-  ## The class is done, now can add default operations to it
-  ## before returning.
-  data<-Tracker.Calculate.SpeedsAndFeeds(data)
-  data<-Tracker.Calculate.MovementTypes(data)
-  data<-Tracker.Calculate.Sleep(data)
-  ##if(length(GetRegions(data$RawData))==2) {
-  ##  data<-TwoChoiceTracker.ProcessTwoChoiceTracker(data)
-  ##}
   if(p$TType=="TwoChoiceTracker"){
     data<-TwoChoiceTracker.ProcessTwoChoiceTracker(data)
   }
   else if(p$TType=="XChoiceTracker"){
     data<-XChoiceTracker.ProcessXTracker(data)
   }
+
+  ## The class is done, now can add default operations to it
+  ## before returning.
+  data<-Tracker.Calculate.SpeedsAndFeeds(data)
+  data<-Tracker.Calculate.MovementTypes(data)
+  data<-Tracker.Calculate.Sleep(data)
+  
+  
   if(nrow(tmp)>0)
     assign(st,data,pos=1)  
   data
