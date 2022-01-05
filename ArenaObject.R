@@ -12,7 +12,7 @@ ArenaClass<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
   files <- list.files(path=datadir,pattern = "*TrackingData_[0-9]*.csv")    
   if(length(files)<1) {
-    cat("Error reading file!")
+    cat("No tracking files found.")
     flush.console()      
   }
   files<-paste(datadir,files,sep="")
@@ -23,7 +23,8 @@ ArenaClass<-function(parameters,dirname="Data"){
  
   
   ## Get the tracking ROI and the Counting ROI
-  file<-list.files(datadir,pattern="*.xlsx")
+  ## This reg expression tries to avoid temporary files that begin with '~'
+  file <- list.files(datadir, pattern = "^[^~].*xlsx")
   if(length(file)>1)
     stop("Only allowed one experiment file in the directory")
   file<-paste(datadir,file,sep="")

@@ -10,7 +10,7 @@ TwoChoiceTracker.SetPIData<-function(tracker){
   nm<-names(rd)
   #regions<-as.character(GetRegions(rd))
   regions<-tracker$CountingROI
-  if(length(regions)!=2) {
+  if(length(regions)!=2) {    
     stop("Wrong number of regions!") 
   }
   a<-rd$Region==regions[1]
