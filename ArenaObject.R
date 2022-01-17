@@ -26,11 +26,13 @@ ArenaClass<-function(parameters,dirname="Data"){
   file <- list.files(datadir, pattern = "^[^~].*xlsx")
   if(length(file)>1)
     stop("Only allowed one experiment file in the directory")
+   if(length(file)<1)
+    stop("Original experiment file is missing")
   file<-paste(datadir,file,sep="")
   roi <- read_excel(file, sheet = "ROI")
   
   ## Look for experimental design file
-  files <- list.files(path = datadir, pattern = "ExpDesign.csv")  
+  files <- list.files(path = datadir, pattern = "ExpDesign.csv") 
   if (length(files) < 1) {
     expDesign <- NULL
   }
@@ -40,6 +42,7 @@ ArenaClass<-function(parameters,dirname="Data"){
   }
   
   arena <- list(Name = dirname, Trackers = trackers, ROI = roi, ExpDesign=expDesign)
+
 
   if(length(trackers)>0){
     for(i in trackers){

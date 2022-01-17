@@ -69,6 +69,12 @@ ParametersClass.XChoiceTracker=function(){
   p
 }
 
+ParametersClass.InteractionCounter=function(){
+  p<-ParametersClass()
+  p<-Parameters.SetParameter(p,TType="InteractionCounter")
+  p
+}
+
 ParametersClass.TwoChoiceTracker=function(){
   p<-ParametersClass()
   p<-Parameters.SetParameter(p,TType="TwoChoiceTracker")

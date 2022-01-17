@@ -1,45 +1,20 @@
+require(ggplot2)
 
-rm(list=ls())
-source("ArenaObject.R")
+datadir<-"Data/Run1"
+distance.for.interaction.mm <-8
 
-CleanTrackers() 
-p<-ParametersClass.TwoChoiceTracker()
-arena<-ArenaClass(p)
+p<-ParametersClass.InteractionCounter()
+interaction.results<-InteractionCounterData(p,datadir,distance.for.interaction.mm)
+binned.interaction.results<-GetBinnedInteractionTime(interaction.results,binsize.min=5)
+write.csv(binned.interaction.results,file=paste(datadir,"/BinnedResults.csv",sep=""),row.names=FALSE)
 
-PlotX(arena)
+## Other functions of use
+newcutoff.mm<-10
+interaction.results<-UpdateDistanceCutoff(interaction.results,newcutoff.mm)
+binned.interaction.results<-GetBinnedInteractionTime(interaction.results,binsize.min=5)
 
+## Plots
+ggplot(results$Results, aes(x=as.numeric(ElapsedTimeMin),y=as.numeric(IsInteracting))) + geom_step()
 
-unique(arena$Tracker_3$RawData$Region)
-
-
-t1<-arena$Tracker_4$RawData
-
-sleep.possible<-t1$Dist_mm<p$Sleep.Threshold.Distance.mm
-theRuns<-rle(as.character(sleep.possible))
-cumMinRuns<-t1$Minutes[cumsum(theRuns$lengths)]
-RunDurationMin<-cumMinRuns-c(0,cumMinRuns[-length(cumMinRuns)])
-LongEnoughRuns<-RunDurationMin>p$Sleep.Threshold.Min
-LongEnoughSleepRuns<-LongEnoughRuns & as.logical(theRuns$values)
-sleep<-rep(LongEnoughSleepRuns,theRuns$lengths)
-
-
-
-
-
-
-
-
-
-
-
-data<-
-require(readxl)
-  
-cdir<-"./Data/"
-file<-list.files(cdir,pattern="*.xlsx")
-if(length(file)>1)
-  stop("Only allowed one experiment file in the directory")
-file<-paste(cdir,file,sep="")
-test<-read_excel(file,sheet="ROI")
-
+ggplot(binned.interaction.results, aes(x=MidPoint,y=PercentageInteraction)) + geom_step()
 
