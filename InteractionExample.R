@@ -1,10 +1,15 @@
+source("ParametersClass.R")
+source("InteractionCounter.R")
 require(ggplot2)
 
-datadir<-"Data/Run1"
+
+datadir<-"Data"
 distance.for.interaction.mm <-8
 
 p<-ParametersClass.InteractionCounter()
 interaction.results<-InteractionCounterData(p,datadir,distance.for.interaction.mm)
+
+
 binned.interaction.results<-GetBinnedInteractionTime(interaction.results,binsize.min=5)
 write.csv(binned.interaction.results,file=paste(datadir,"/BinnedResults.csv",sep=""),row.names=FALSE)
 

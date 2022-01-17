@@ -2,8 +2,8 @@ require(data.table)
 require(reshape2)
 require(readxl)
 require(tibble)
-require(dplyr)
 require(plyr)
+require(dplyr)
 require(tidyr)
 
 
@@ -85,7 +85,6 @@ InteractionCounterData<-function(parameters,dirname="Data",interaction.cutoff.mm
   
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}),idcol="Rep")
   #theData$Frame <-theData$Frame - theData$Frame[1] +1 
-
   theResults<-GetInteractionResults(theData,parameters,interaction.cutoff.mm)
 
 
