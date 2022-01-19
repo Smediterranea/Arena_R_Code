@@ -470,6 +470,58 @@ Tracker.GetRawData<-function(tracker,range=c(0,0)){
 }
 
 
+
+Tracker.GetFirstTimeAboveYPos<-function(tracker,pos){
+  result<-NA
+  ## Remember that higher is more negative for Y position.
+  if(length(pos)==1) {
+    tmp<-tracker$RawData
+    tmp<-tmp[tmp$Y>pos,"Minutes"]
+    if(length(tmp)>0){
+      result<-tmp[1]
+    }
+    else {
+      result<-NA
+    }
+  }
+  else {
+    result<-rep(-1,length(pos))
+    for(i in 1:length(pos)){
+      tmp<-tracker$RawData
+      tmp<-tmp[tmp$Y>pos[i],"Minutes"]
+      if(length(tmp)>0) {
+        result[i]<-tmp[1]
+      }
+      else {
+        result[i]<-NA
+      }
+    }
+  }
+  result
+}
+
+Tracker.GetFirstYPos<-function(tracker){
+  tracker$RawData$Y[1]
+}
+
+Tracker.GetTotalYDist<-function(tracker,time=c(0,0)){
+  rd<-Tracker.GetRawData(tracker,time)
+  y1<-rd$Y[-1]
+  y2<-rd$Y[-length(rd$Y)]
+  delta.y<-sum(abs(y1-y2))
+  delta.y  
+}
+
+Tracker.GetTotalUpDist<-function(tracker,time=c(0,0)){
+  rd<-Tracker.GetRawData(tracker,time)
+  y1<-rd$Y[-1]
+  y2<-rd$Y[-length(rd$Y)]
+  delta.y<-y1-y2
+  delta.y[delta.y<0]<-0
+  sum(delta.y)  
+}
+
+
 Tracker.LastSampleData<-function(tracker){
   tmp<-Tracker.GetRawData(tracker)
   nr<-nrow(tmp)

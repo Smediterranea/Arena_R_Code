@@ -81,6 +81,13 @@ ParametersClass.TwoChoiceTracker=function(){
   p
 }
 
+ParametersClass.DDrop=function(){
+  p<-ParametersClass()
+  p<-Parameters.SetParameter(p,TType="DDrop")
+  p.mmPerPixel<-0.056 # THIS NEEDS TO BE CHANGED
+  p
+}
+
 Parameters.AreParametersEqual<-function(p1,p2){
   result<-TRUE
   if(p1$Filter.Sleep!=p2$Filter.Sleep) {

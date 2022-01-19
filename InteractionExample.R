@@ -10,9 +10,6 @@ distance.for.interaction.mm <-8
 binsize.in.min<-5
 ##***********
 
-## Make sure to set the mmPerPixel parameter to be correct.
-p<-Parameters.SetParameter(mmPerPixel = 0.056)
-
 ## Run these next four functions to get the data saved to files in data directory.
 
 ##***********
