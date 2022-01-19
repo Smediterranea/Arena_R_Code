@@ -7,6 +7,9 @@ require(tibble)
 
 
 
+
+
+
 ## Public Functions ##
 ArenaClass<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
@@ -19,7 +22,7 @@ ArenaClass<-function(parameters,dirname="Data"){
   
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}))
 
-  trackers<-unique(theData$ObjectID)
+  trackers<-unique(theData$Name)
   
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
@@ -30,6 +33,7 @@ ArenaClass<-function(parameters,dirname="Data"){
     stop("Original experiment file is missing")
   file<-paste(datadir,file,sep="")
   roi <- read_excel(file, sheet = "ROI")
+  roi<-subset(roi,roi$Name!="AutoGenerateAntiMask")
   
   ## Look for experimental design file
   files <- list.files(path = datadir, pattern = "ExpDesign.csv") 
@@ -41,13 +45,14 @@ ArenaClass<-function(parameters,dirname="Data"){
     expDesign <- read.csv(files[1])    
   }
   
-  arena <- list(Name = dirname, Trackers = trackers, ROI = roi, ExpDesign=expDesign)
+  
+  arena <- list(Name = "Arena1", Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname)
 
 
   if(length(trackers)>0){
     for(i in trackers){
       nm<-paste("Tracker",i,sep="_")
-      roinm<-paste("T",i,sep="_")
+      roinm<-i
       theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
       theCountingROI<-roi$Name[roi$Type=="Counting"]
       if(length(theCountingROI)<1)
@@ -57,6 +62,9 @@ ArenaClass<-function(parameters,dirname="Data"){
     }
   }
   class(arena)="Arena"
+  
+  st<-paste("ARENA1",id,sep="")
+  assign(st,data,pos=1)  
   arena
 }
 
@@ -149,7 +157,7 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
 }
 
 PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_XY.pdf",sep="")
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_XYPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
     #pdf(fname,paper="letter",onefile=TRUE)
@@ -167,7 +175,7 @@ PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
 }
 
 PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_XPlots.pdf",sep="")
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_XPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
     #pdf(fname,paper="USr",onefile=TRUE)
@@ -184,8 +192,26 @@ PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   }
 }
 
+PlotY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_YPlots.pdf",sep="")
+  tmp.list<-list()
+  if(WriteToPDF==TRUE) {
+    #pdf(fname,paper="USr",onefile=TRUE)
+    mypdf(fname,res = 600, height = 9, width = 11, units = "in")
+    par(mfrow=c(3,2))
+  }
+  for(i in arena$Trackers){
+    tmp<-Arena.GetTracker(arena,i)
+    PlotY(tmp,range)
+  }
+  if(WriteToPDF==TRUE){
+    #graphics.off()
+    mydev.off(fname)
+  }
+}
+
 PlotX2.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_XPlots2.pdf",sep="")
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_XPlots2.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
     #pdf(fname,paper="USr",onefile=TRUE)
@@ -281,7 +307,7 @@ AnalyzeTransitions.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE){
 }
 
 PIPlots.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_PIPlots.pdf",sep="")
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_PIPlots.pdf",sep="")
   if(WriteToPDF==TRUE) {
     ##mypdf(fname,paper="letter",onefile=TRUE)
     mypdf(fname,res = 600, height = 11, width = 9, units = "in")

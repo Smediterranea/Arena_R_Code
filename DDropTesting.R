@@ -3,6 +3,8 @@ rm(list=ls())
 require(readr)
 source("ParametersClass.R")
 source("TrackerObject.R")
+source("ArenaObject.R")
+source("GeneralUtility.R")
 
 dirname<-"DDropData"
 parameters<-ParametersClass.DDrop()
@@ -16,16 +18,20 @@ DDropClass<-function(parameters,dirname="Data"){
   }
   files<-paste(datadir,files,sep="")
   for(f in files){
-    runnumber<-readr::parse_number(f)
-    Load.DDrop.Object(parameters,f,datadir,runnumber)
+    tmp<-substring(f,3,nchar(f))
+    runnumber<-readr::parse_number(tmp)
+    Load.DDrop.Object(parameters,f,dirname,runnumber)
   }
 }
 
-Load.DDrop.Object<-function(parameters,filename,datadir,runNumber){
-  
+Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
+  datadir<-paste("./",dirname,"/",sep="")
   theData<-read.csv(filename, header=TRUE)
   
-  trackers<-unique(theData$ObjectID)
+  ## Just for DDrop, the RELY position needs to be inverted (for plotting, etc)
+  theData$RelY<-theData$RelY*(-1.0)
+  
+  trackers<-unique(theData$Name)
   
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
@@ -36,6 +42,7 @@ Load.DDrop.Object<-function(parameters,filename,datadir,runNumber){
     stop("Original experiment file is missing")
   file<-paste(datadir,file,sep="")
   roi <- read_excel(file, sheet = "ROI")
+  roi<-subset(roi,roi$Name!="AutoGenerateAntiMask")
   
   ## Look for experimental design file
   files <- list.files(path = datadir, pattern = "ExpDesign.csv") 
@@ -47,12 +54,13 @@ Load.DDrop.Object<-function(parameters,filename,datadir,runNumber){
     expDesign <- read.csv(files[1])    
   }
   
-  DDrop <- list(Name = dirname, Trackers = trackers, ROI = roi, ExpDesign=expDesign)
+  arenaName<-paste("Arena",runNumber,sep="")
+  DDrop <- list(Name = arenaName, Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname)
   
   if(length(trackers)>0){
     for(i in trackers){
       nm<-paste("Tracker",i,sep="_")
-      roinm<-paste("T",i,sep="_")
+      roinm<-i
       theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
       theCountingROI<-roi$Name[roi$Type=="Counting"]
       if(length(theCountingROI)<1)
@@ -61,8 +69,8 @@ Load.DDrop.Object<-function(parameters,filename,datadir,runNumber){
       DDrop<-c(DDrop,setNames(list(nm=tmp),nm))
     }
   }
-  class(DDrop)="DDrop"
-  st<-paste("RUN",runNumber,sep="")
+  class(DDrop)="Arena"
+  st<-paste("ARENA",runNumber,sep="")
   assign(st,DDrop,pos=1)  
   DDrop
 }

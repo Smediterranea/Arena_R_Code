@@ -8,13 +8,9 @@ require(Gmisc)
 
 
 TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,expDesign){
-  if (!is.numeric(id))
-    stop("invalid arguments") 
-  
-  st<-paste("ARENA_T",id,sep="")
-  
+
   tmp<-data
-  tmp<-subset(tmp,tmp$ObjectID==id)
+  tmp<-subset(tmp,tmp$Name==id)
   tmp<-droplevels(tmp)
   
   if(is.na(parameters$FPS)){
@@ -38,10 +34,10 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,ex
   data=list(ID=id,ROI=roisize,CountingROI=theCountingROI,Parameters=parameters,RawData=tmp,ExpDesign=expDesign)
   class(data)="Tracker"
   
-  if(p$TType=="TwoChoiceTracker"){
+  if(parameters$TType=="TwoChoiceTracker"){
     data<-TwoChoiceTracker.ProcessTwoChoiceTracker(data)
   }
-  else if(p$TType=="XChoiceTracker"){
+  else if(parameters$TType=="XChoiceTracker"){
     data<-XChoiceTracker.ProcessXTracker(data)
   }
 
@@ -50,10 +46,7 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,ex
   data<-Tracker.Calculate.SpeedsAndFeeds(data)
   data<-Tracker.Calculate.MovementTypes(data)
   data<-Tracker.Calculate.Sleep(data)
-  
-  
-  if(nrow(tmp)>0)
-    assign(st,data,pos=1)  
+
   data
 }
 
@@ -98,7 +91,7 @@ Tracker.Calculate.SpeedsAndFeeds<-function(tracker){
     
     ## For more complex speed transformations, add a function here
     if(tracker$Parameters$Smooth.Speed.Data){
-      ttt<-ksmooth(tdata$Minutes,speed)$y    
+      ttt<-ksmooth(tdata$Minutes,speed,x.points=tdata$Minutes)$y    
       modifiedSpeed_mm_s<-ttt
       
     }
