@@ -7,9 +7,6 @@ require(tibble)
 
 
 
-
-
-
 ## Public Functions ##
 ArenaClass<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
@@ -46,7 +43,7 @@ ArenaClass<-function(parameters,dirname="Data"){
   }
   
   
-  arena <- list(Name = "Arena1", Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname)
+  arena <- list(Name = "Arena1", Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=dirname)
 
 
   if(length(trackers)>0){
@@ -65,7 +62,76 @@ ArenaClass<-function(parameters,dirname="Data"){
   
   st<-paste("ARENA1",id,sep="")
   assign(st,data,pos=1)  
+  print(paste(filename,"saved as",st))
   arena
+}
+
+
+ReadDDropFiles<-function(parameters,dirname="Data"){
+  datadir<-paste("./",dirname,"/",sep="")
+  files <- list.files(path=datadir,pattern = "*TrackingData_[0-9]*.csv")    
+  if(length(files)<1) {
+    cat("No tracking files found.")
+    flush.console()      
+  }
+  files<-paste(datadir,files,sep="")
+  for(f in files){
+    tmp<-substring(f,3,nchar(f))
+    runnumber<-readr::parse_number(tmp)
+    Load.DDrop.Object(parameters,f,dirname,runnumber)
+  }
+}
+
+Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
+  datadir<-paste("./",dirname,"/",sep="")
+  theData<-read.csv(filename, header=TRUE)
+  
+  ## Just for DDrop, the RELY position needs to be inverted (for plotting, etc)
+  theData$RelY<-theData$RelY*(-1.0)
+  
+  trackers<-unique(theData$Name)
+  
+  ## Get the tracking ROI and the Counting ROI
+  ## This reg expression tries to avoid temporary files that begin with '~'
+  file <- list.files(datadir, pattern = "^[^~].*xlsx")
+  if(length(file)>1)
+    stop("Only allowed one experiment file in the directory")
+  if(length(file)<1)
+    stop("Original experiment file is missing")
+  file<-paste(datadir,file,sep="")
+  roi <- read_excel(file, sheet = "ROI")
+  roi<-subset(roi,roi$Name!="AutoGenerateAntiMask")
+  
+  ## Look for experimental design file
+  files <- list.files(path = datadir, pattern = "ExpDesign.csv") 
+  if (length(files) < 1) {
+    expDesign <- NULL
+  }
+  else {
+    files <- paste(datadir, files, sep = "")    
+    expDesign <- read.csv(files[1])    
+  }
+  
+  arenaName<-paste("Arena",runNumber,sep="")
+  DDrop <- list(Name = arenaName, Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=filename)
+  
+  if(length(trackers)>0){
+    for(i in trackers){
+      nm<-paste("Tracker",i,sep="_")
+      roinm<-i
+      theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
+      theCountingROI<-roi$Name[roi$Type=="Counting"]
+      if(length(theCountingROI)<1)
+        theCountingROI<-"None"
+      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI,theCountingROI,expDesign)
+      DDrop<-c(DDrop,setNames(list(nm=tmp),nm))
+    }
+  }
+  class(DDrop)="Arena"
+  st<-paste("ARENA",runNumber,sep="")
+  assign(st,DDrop,pos=1)  
+  print(paste("DDrop run",filename,"saved as",st))
+  DDrop
 }
 
 Arena.ChangeParameterObject<-function(arena,newP) {
@@ -118,8 +184,7 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
     t<-Arena.GetTracker(arena,i)
     tmps<-Summarize(t,range,FALSE)
     if(exists("result",inherits = FALSE)==TRUE){
-      ##result<-rbind(result,tmps)       
-      result<-rbind.missing(result,tmps)       
+      result<-rbind(result,tmps)       
     }
     else {
       result<-tmps     
@@ -127,28 +192,34 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
   }
   if(ShowPlot==TRUE){
     if(WriteToPDF==TRUE) {
-      fname<-paste("./",arena$Name,"/Arena_SummaryPlots.pdf",sep="")
+      fname<-paste("./",arena$DataDir,"/",arena$Name,"_SummaryPlots.pdf",sep="")
       pdf(fname,paper="USr",onefile=TRUE)
       par(mfrow=c(3,2))
     }
-    tmp.result<-result[,c(1,4,5,6,7)]
+    tmp.result<-result[,c("ID","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result[is.na(tmp.result)]<-0
+    
     tmp.result1<-melt(tmp.result,id.var="ID")
     names(tmp.result1)<-c("ID","Type","value")
+    
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
       geom_bar(stat = "identity")+ggtitle(paste("Arena"," -- Distribution")) +
       labs(x="Tracker ID",y="Fraction"))
     
     ## Now reflect total movement
-    tmp.result<-result[,c(1,4,5,6,7)]
-    tmp.result[,2]<-result[,4]*result$TotalDist_mm
-    tmp.result[,3]<-result[,5]*result$TotalDist_mm
-    tmp.result[,4]<-result[,6]*result$TotalDist_mm
-    tmp.result[,5]<-result[,7]*result$TotalDist_mm
+    tmp.result<-result[,c("ID","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result[is.na(tmp.result)]<-0
+    
+    tmp.result[,"PercSleeping"]<-result[,"PercSleeping"]*result$TotalDist_mm
+    tmp.result[,"PercWalking"]<-result[,"PercWalking"]*result$TotalDist_mm
+    tmp.result[,"PercMicroMoving"]<-result[,"PercMicroMoving"]*result$TotalDist_mm
+    tmp.result[,"PercResting"]<-result[,"PercResting"]*result$TotalDist_mm
     tmp.result1<-melt(tmp.result,id.var="ID")
     names(tmp.result1)<-c("ID","Type","value")
+    
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
             geom_bar(stat = "identity")+ggtitle(paste("Arena",arena$Name," -- Total Movement")) +
-            labs(x="Tracker ID",y="Frames"))
+            labs(x="Tracker ID",y="Distance (mm)"))
     if(WriteToPDF==TRUE){
       graphics.off()
     }

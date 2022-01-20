@@ -3,7 +3,7 @@
 ## simpler PDF outputs.
 ## Get it here: https://imagemagick.org/script/download.php#windows
 ## Also required are the following packages: ggplot2, markovchain, Gmisc, 
-##  data.table, reshape2, readxl, tibble
+##  data.table, reshape2, readxl, tibble, stringr, readr
 
 
 rm(list=ls())

@@ -24,6 +24,7 @@ XChoiceTracker.SetXData<-function(tracker){
   tracker$RawData$RelX <- tracker$RawData$RelX * pimult
   tracker
 }
+
 Summarize.XChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){  
   rd<-Tracker.GetRawData(tracker,range)  
   

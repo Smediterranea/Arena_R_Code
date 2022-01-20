@@ -83,8 +83,12 @@ ParametersClass.TwoChoiceTracker=function(){
 
 ParametersClass.DDrop=function(){
   p<-ParametersClass()
-  p<-Parameters.SetParameter(p,TType="DDrop")
-  p.mmPerPixel<-0.056 # THIS NEEDS TO BE CHANGED
+  p<-Parameters.SetParameter(p,TType="DDropTracker")
+  p$mmPerPixel<-0.056 # THIS NEEDS TO BE CHANGED
+  p$FPS<-25
+  p$Smooth.Speed.Data<-FALSE
+  p$Filter.Sleep<-FALSE
+  p$Filter.Tracker.Error<-0
   p
 }
 

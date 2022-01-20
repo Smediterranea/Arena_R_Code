@@ -1,6 +1,7 @@
 source("ParametersClass.R")
 source("TwoChoiceTracker.R")
 source("XChoiceTracker.R")
+source("DDropTracker.R")
 source("GeneralUtility.R")
 require(ggplot2)
 require(markovchain)
@@ -40,7 +41,10 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,ex
   else if(parameters$TType=="XChoiceTracker"){
     data<-XChoiceTracker.ProcessXTracker(data)
   }
-
+  else if(parameters$TType=="DDropTracker"){
+    data<-DDropTracker.ProcessDDropTracker(data)
+  }
+  
   ## The class is done, now can add default operations to it
   ## before returning.
   data<-Tracker.Calculate.SpeedsAndFeeds(data)
@@ -138,6 +142,7 @@ Tracker.Calculate.Sleep<-function(tracker){
   
   t1<-data.frame(t1,sleep)
   names(t1)<-tnames
+  tracker$RawData<-t1
     
   #Sleep trumps everything else
   tracker$RawData$Walking[tracker$RawData$Sleeping]<-FALSE
@@ -455,64 +460,15 @@ Tracker.GetRawData<-function(tracker,range=c(0,0)){
     rd<- rd[(rd$Minutes>range[1]) & (rd$Minutes<range[2]),]
   }
   ## Filter out unwanted data
-  if(tracker$Parameters$Filter.Sleep==TRUE)
+  if(tracker$Parameters$Filter.Sleep==TRUE){
     rd<-rd[rd$Sleeping==0,]
-  if(tracker$Parameters$Filter.Tracker.Error==1)
+  }
+  if(tracker$Parameters$Filter.Tracker.Error==1){
     rd<-rd[rd$DataQuality=="High",]
+  }
   rd
 }
 
-
-
-Tracker.GetFirstTimeAboveYPos<-function(tracker,pos){
-  result<-NA
-  ## Remember that higher is more negative for Y position.
-  if(length(pos)==1) {
-    tmp<-tracker$RawData
-    tmp<-tmp[tmp$Y>pos,"Minutes"]
-    if(length(tmp)>0){
-      result<-tmp[1]
-    }
-    else {
-      result<-NA
-    }
-  }
-  else {
-    result<-rep(-1,length(pos))
-    for(i in 1:length(pos)){
-      tmp<-tracker$RawData
-      tmp<-tmp[tmp$Y>pos[i],"Minutes"]
-      if(length(tmp)>0) {
-        result[i]<-tmp[1]
-      }
-      else {
-        result[i]<-NA
-      }
-    }
-  }
-  result
-}
-
-Tracker.GetFirstYPos<-function(tracker){
-  tracker$RawData$Y[1]
-}
-
-Tracker.GetTotalYDist<-function(tracker,time=c(0,0)){
-  rd<-Tracker.GetRawData(tracker,time)
-  y1<-rd$Y[-1]
-  y2<-rd$Y[-length(rd$Y)]
-  delta.y<-sum(abs(y1-y2))
-  delta.y  
-}
-
-Tracker.GetTotalUpDist<-function(tracker,time=c(0,0)){
-  rd<-Tracker.GetRawData(tracker,time)
-  y1<-rd$Y[-1]
-  y2<-rd$Y[-length(rd$Y)]
-  delta.y<-y1-y2
-  delta.y[delta.y<0]<-0
-  sum(delta.y)  
-}
 
 
 Tracker.LastSampleData<-function(tracker){
