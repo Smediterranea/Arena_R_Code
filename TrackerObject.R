@@ -16,7 +16,9 @@ TrackerClass.RawDataFrame<-function(id,parameters,data,roisize,theCountingROI,ex
   
   if(is.na(parameters$FPS)){
     ## Transform the mSec so that the first observation is 0
-    tmp$MSec<-tmp$MSec - tmp$MSec[1]
+    ## Well, maybe not.  Definitely not for DDrop, probably
+    ## not for other applications.  I'll comment it out for now.
+    ##tmp$MSec<-tmp$MSec - tmp$MSec[1]
     Minutes<-tmp$MSec/(1000*60)
   }
   else {    

@@ -16,7 +16,7 @@ source("GeneralUtility.R")
 ## In the output directory make sure to include the Experiment .xlxs file as well
 ## as the tacking csv files for each run. The original xlxs file is used to define
 ## the lanes.
-dirname<-"Jan21"
+dirname<-"DDropData"
 parameters<-ParametersClass.DDrop()
 
 ReadDDropFiles(parameters,dirname)
