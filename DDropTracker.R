@@ -13,6 +13,7 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   perc.MicroMoving<-sum(rd$MicroMoving)/length(rd$MicroMoving)
   perc.Resting<-sum(rd$Resting)/length(rd$Resting)
   
+  firstTimeSeen<-rd$Minutes[1]*60
   firstUps<-Tracker.GetFirstTimeAboveYPos(tracker,c(0.25,0.5,0.75,0.9))
   totalYdist<-Tracker.GetTotalYDist(tracker,range)
   totalUpdist<-Tracker.GetTotalUpDist(tracker,range)
@@ -28,8 +29,8 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   total.min<-rd$Minutes[nrow(rd)]-rd$Minutes[1]
   total.sec<-total.min*60
   
-  results<-data.frame(tracker$ID,total.sec,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-  names(results)<-c("ID","ObsSeconds","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+  results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+  names(results)<-c("ID","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   results
 }
   

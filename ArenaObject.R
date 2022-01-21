@@ -74,10 +74,11 @@ ReadDDropFiles<-function(parameters,dirname="Data"){
     cat("No tracking files found.")
     flush.console()      
   }
+  justfilenames<-files
   files<-paste(datadir,files,sep="")
-  for(f in files){
-    tmp<-substring(f,3,nchar(f))
-    runnumber<-readr::parse_number(tmp)
+  for(i in 1:length(files)){
+    f<-files[i]
+    runnumber<-readr::parse_number(justfilenames[i])
     Load.DDrop.Object(parameters,f,dirname,runnumber)
   }
 }
