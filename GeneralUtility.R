@@ -85,6 +85,7 @@ ZeroDDropResults<-function(results){
   new.results<-results
   colsToZero<-c("SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90")
   new.results[,colsToZero]<-new.results[,colsToZero] - new.results[,"SecFirstSeen"]
+  new.results
 }
 
 
