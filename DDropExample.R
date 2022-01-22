@@ -27,6 +27,10 @@ write.csv(results,file=outputfile,row.names=FALSE)
 ## Or write to clipboard to paste into excel
 write.table(results,"clipboard",sep="\t",row.names=FALSE)
 
+## Isolate the data only after the flies are first seen above
+## the basement mask.
+zeroed.results<-ZeroDDropResults(results)
+
 
 ## Plots can be useful as well
 PlotY(ARENA1)

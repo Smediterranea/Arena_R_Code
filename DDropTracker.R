@@ -4,7 +4,7 @@ DDropTracker.ProcessDDropTracker<-function(tracker){
   class(tracker)<-c("DDropTracker",class(tracker))
   tracker
 }
-  
+
 Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){  
   rd<-Tracker.GetRawData(tracker,range)  
   
