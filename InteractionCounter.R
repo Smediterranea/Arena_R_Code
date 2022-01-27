@@ -74,16 +74,21 @@ GetInteractionResults<-function(ic,p,interaction.cutoff.mm=8){
 }
 
 
-InteractionCounterData<-function(parameters,dirname="Data",interaction.cutoff.mm=8){
+InteractionCounterData<-function(parameters,dirname="Data",interaction.cutoff.mm=8,counting.region="all"){
   datadir<-paste("./",dirname,"/",sep="")
   files <- list.files(path=datadir,pattern = "*CountingData_[0-9].*\\.csv")    
   if(length(files)<1) {
     cat("No counting files found.")
-    flush.console()      
+    flush.console()  
+    return(FALSE)
   }
   files<-paste(datadir,files,sep="")
   
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}),idcol="Rep")
+  if(counting.region!="all"){
+    theData<-subset(theData,theData$ROI==counting.region)
+    
+  }
   #theData$Frame <-theData$Frame - theData$Frame[1] +1 
   theResults<-GetInteractionResults(theData,parameters,interaction.cutoff.mm)
 
