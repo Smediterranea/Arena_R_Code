@@ -5,7 +5,7 @@ source("InteractionCounter.R")
 
 
 ##***********
-datadir<-"Run1"
+datadir<-"Data"
 distance.for.interaction.mm <-8
 binsize.in.min<-5
 ##***********
@@ -18,7 +18,7 @@ p<-ParametersClass.InteractionCounter()
 
 ##***********
 ##*Run this section if you want all results regardless of counting region.
-interaction.results<-InteractionCounterData(p,datadir,distance.for.interaction.mm)
+interaction.results<-InteractionCounterData(p,datadir,distance.for.interaction.mm,)
 
 binned.interaction.results<-GetBinnedInteractionTime(interaction.results,binsize.min=binsize.in.min)
 write.csv(binned.interaction.results,file=paste(datadir,"/BinnedResults.csv",sep=""),row.names=FALSE)
