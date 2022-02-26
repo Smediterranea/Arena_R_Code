@@ -19,9 +19,9 @@ for (i in dirs) {
     
   }
   interaction.results.left <-
-    InteractionCounterData(p, datadir, distance.for.interaction.mm, counting.region = "Left")
+    InteractionCounterData(p, datadir, distance.for.interaction.mm, tracking.region = "Left")
   interaction.results.right <-
-    InteractionCounterData(p, datadir, distance.for.interaction.mm, counting.region = "Right")
+    InteractionCounterData(p, datadir, distance.for.interaction.mm, tracking.region = "Right")
   
   
   binned.interaction.results.left <-

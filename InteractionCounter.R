@@ -39,26 +39,26 @@ GetInteractionResults <- function(ic, p, interaction.cutoff.mm = 8) {
       print(paste("Rep", i, "of", length(results$Distance)))
     tmp <- subset(ic, Frame == results$Frame[i])
     ## Drop spurious blobs
-    tmp<-subset(tmp,BType!="None")
+    tmp<-subset(tmp,BlobType!="None")
     if (nrow(tmp) != 2 && nrow(tmp) != 1){
       print(tmp)
       stop("Oops1")
       
     }
-    x <- tmp$CentroidX
-    y <- tmp$CentroidY
+    x <- tmp$RelX
+    y <- tmp$RelY
     if (length(x) == 2) {
       diffx <- x[1] - x[2]
       diffy <- y[1] - y[2]
       d <- sqrt(diffx * diffx + diffy * diffy)
       results$Distance[i] <- d
       times[i] <- tmp$Time[1]
-      msec[i] <- tmp$Millisec[1]
+      msec[i] <- tmp$MSec[1]
     }
     else {
       results$Distance[i] <- 0
       times[i] <- tmp$Time
-      msec[i] <- tmp$Millisec
+      msec[i] <- tmp$MSec
     }
     
   }
@@ -122,10 +122,10 @@ InteractionCounterData <-
   function(parameters,
            dirname = "Data",
            interaction.cutoff.mm = 8,
-           counting.region = "all") {
+           tracking.region = "all") {
     datadir <- paste("./", dirname, "/", sep = "")
     files <-
-      list.files(path = datadir, pattern = "*CountingData_[0-9].*\\.csv")
+      list.files(path = datadir, pattern = "*Data_[0-9].*\\.csv")
     if (length(files) < 1) {
       cat("No counting files found.")
       flush.console()
@@ -137,8 +137,8 @@ InteractionCounterData <-
       rbindlist(lapply(files, function(x) {
         read.csv(x, header = TRUE)
       }), idcol = "Rep")
-    if (counting.region != "all") {
-      theData <- subset(theData, theData$ROI == counting.region)
+    if (tracking.region != "all") {
+      theData <- subset(theData, theData$Name == tracking.region)
       
     }
     #theData$Frame <-theData$Frame - theData$Frame[1] +1
