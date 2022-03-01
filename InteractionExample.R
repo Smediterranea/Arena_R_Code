@@ -7,7 +7,7 @@ source("InteractionCounter.R")
 ##***********
 datadir<-"Data"
 distance.for.interaction.mm <-8
-binsize.in.min<-5
+binsize.in.min<-30
 ##***********
 
 ## Run these next four functions to get the data saved to files in data directory.
@@ -18,7 +18,7 @@ p<-ParametersClass.InteractionCounter()
 
 ##***********
 ##*Run this section if you want all results regardless of counting region.
-interaction.results<-InteractionCounterData(p,datadir,distance.for.interaction.mm,tracking.region = "Left")
+interaction.results<-InteractionCounterData(p,datadir,distance.for.interaction.mm)
 
 binned.interaction.results<-GetBinnedInteractionTime(interaction.results,binsize.min=binsize.in.min)
 write.csv(binned.interaction.results,file=paste(datadir,"/BinnedResults.csv",sep=""),row.names=FALSE)
@@ -27,8 +27,8 @@ write.csv(binned.interaction.results,file=paste(datadir,"/BinnedResults.csv",sep
 ##***********
 ## Run This section if you want separate results for "Left" and "Right" regions.
 ## If you want to specify analysis for only one counting region
-interaction.results.left<-InteractionCounterData(p,datadir,distance.for.interaction.mm,counting.region = "Left")
-interaction.results.right<-InteractionCounterData(p,datadir,distance.for.interaction.mm,counting.region = "Right")
+interaction.results.left<-InteractionCounterData(p,datadir,distance.for.interaction.mm,tracking.region = "Left")
+interaction.results.right<-InteractionCounterData(p,datadir,distance.for.interaction.mm,tracking.region = "Right")
 
 
 binned.interaction.results.left<-GetBinnedInteractionTime(interaction.results.left,binsize.min=binsize.in.min)

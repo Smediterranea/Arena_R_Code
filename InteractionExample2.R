@@ -6,7 +6,7 @@ source("InteractionCounter.R")
 
 ##***********
 distance.for.interaction.mm <- 8
-binsize.in.min <- 5
+binsize.in.min <- 30
 p <- ParametersClass.InteractionCounter()
 ##***********
 

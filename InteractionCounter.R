@@ -139,7 +139,12 @@ InteractionCounterData <-
       }), idcol = "Rep")
     if (tracking.region != "all") {
       theData <- subset(theData, theData$Name == tracking.region)
-      
+      outfilename<-paste("InteractionResults_",tracking.region,".csv",sep="")
+      outfilename2<-paste("InteractionFreq_",tracking.region,".csv",sep="")
+    }
+    else{
+      outfilename<-"InteractionResults.csv"
+      outfilename2<-"InteractionFreq.csv"
     }
     #theData$Frame <-theData$Frame - theData$Frame[1] +1
     theResults <-
@@ -153,11 +158,11 @@ InteractionCounterData <-
         Results = theResults$Results
       )
     
-    outfile <- paste(datadir, "InteractionResults.csv", sep = "")
+    outfile <- paste(datadir, outfilename, sep = "")
     write.csv(results$Results, file = outfile, row.names = FALSE)
     tmp <- data.frame(results$Frequencies)
     names(tmp) <- c("FrameCounts")
-    outfile <- paste(datadir, "InteractionFreq.csv", sep = "")
+    outfile <- paste(datadir, outfilename2, sep = "")
     write.csv(tmp, file = outfile)
     results
   }
