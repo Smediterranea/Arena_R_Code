@@ -7,7 +7,7 @@ source("InteractionCounter.R")
 ##***********
 datadir<-"Data"
 distance.for.interaction.mm <-8
-binsize.in.min<-30
+binsize.in.min<-10
 ##***********
 ##***********
 ##* For movies with old cameras
