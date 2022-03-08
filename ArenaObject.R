@@ -10,7 +10,7 @@ require(tibble)
 ## Public Functions ##
 ArenaClass<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
-  files <- list.files(path=datadir,pattern = "*TrackingData_[0-9]*.csv")    
+  files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")    
   if(length(files)<1) {
     cat("No tracking files found.")
     flush.console()      
@@ -69,7 +69,7 @@ ArenaClass<-function(parameters,dirname="Data"){
 
 ReadDDropFiles<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
-  files <- list.files(path=datadir,pattern = "*TrackingData_[0-9]*.csv")    
+  files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")    
   if(length(files)<1) {
     cat("No tracking files found.")
     flush.console()      
