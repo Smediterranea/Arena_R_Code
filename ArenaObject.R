@@ -146,14 +146,22 @@ Arena.ChangeParameterObject<-function(arena,newP) {
 }
 
 Arena.GetTracker<-function(arena,id){
-  tmp<-paste("Tracker_",id,sep="")
+  if(length(id)<2){
+    tmp<-paste("Tracker_",id,sep="")  
+  }
+  else if(length(id)==2){
+    tmp<-paste("Tracker_",id$TrackingRegion,"_",id$ObjectID,sep="")
+  }
+  else{
+    tmp=""
+  }
   arena[[tmp]]
 }
 
 GetMeanXPositions.Arena<-function(arena,range=c(0,0)){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     tmps<-GetMeanXPositions.Tracker(t,range)
     if(exists("result",inherits = FALSE)==TRUE){
       result<-rbind.missing(result,tmps)       
@@ -166,9 +174,9 @@ GetMeanXPositions.Arena<-function(arena,range=c(0,0)){
 }
 
 GetQuartileXPositions.Arena<-function(arena,quartile=1,range=c(0,0)){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     tmps<-GetQuartileXPositions.Tracker(t,quartile,range)
     if(exists("result",inherits = FALSE)==TRUE){
       result<-rbind.missing(result,tmps)       
@@ -181,9 +189,9 @@ GetQuartileXPositions.Arena<-function(arena,quartile=1,range=c(0,0)){
 }
 
 Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     tmps<-Summarize(t,range,FALSE)
     if(exists("result",inherits = FALSE)==TRUE){
       result<-rbind(result,tmps)       
@@ -198,26 +206,28 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
       pdf(fname,paper="USr",onefile=TRUE)
       par(mfrow=c(3,2))
     }
-    tmp.result<-result[,c("ID","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result<-result[,c("ObjectID","TrackingROI","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
     tmp.result[is.na(tmp.result)]<-0
     
-    tmp.result1<-melt(tmp.result,id.var="ID")
-    names(tmp.result1)<-c("ID","Type","value")
+    tmp.result1<-melt(tmp.result,id.var=c("TrackingROI","ObjectID"))
+    tmp.result1<-data.frame(paste(tmp.result1$TrackingROI,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
+    names(tmp.result1)<-c("ID","TrackingROI","ObjectID","Type","value")
     
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
       geom_bar(stat = "identity")+ggtitle(paste("Arena"," -- Distribution")) +
       labs(x="Tracker ID",y="Fraction"))
     
     ## Now reflect total movement
-    tmp.result<-result[,c("ID","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result<-result[,c("ObjectID","TrackingROI","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
     tmp.result[is.na(tmp.result)]<-0
     
     tmp.result[,"PercSleeping"]<-result[,"PercSleeping"]*result$TotalDist_mm
     tmp.result[,"PercWalking"]<-result[,"PercWalking"]*result$TotalDist_mm
     tmp.result[,"PercMicroMoving"]<-result[,"PercMicroMoving"]*result$TotalDist_mm
     tmp.result[,"PercResting"]<-result[,"PercResting"]*result$TotalDist_mm
-    tmp.result1<-melt(tmp.result,id.var="ID")
-    names(tmp.result1)<-c("ID","Type","value")
+    tmp.result1<-melt(tmp.result,id.var=c("TrackingROI","ObjectID"))
+    tmp.result1<-data.frame(paste(tmp.result1$TrackingROI,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
+    names(tmp.result1)<-c("ID","TrackingROI","ObjectID","Type","value")
     
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
             geom_bar(stat = "identity")+ggtitle(paste("Arena",arena$Name," -- Total Movement")) +
@@ -237,9 +247,10 @@ PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
     mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
-  for(i in arena$Trackers){
-    tmp<-Arena.GetTracker(arena,i)
-    PlotXY(tmp,range)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    PlotXY(t,range)
   }
   if(WriteToPDF==TRUE){
     #graphics.off()
@@ -255,9 +266,10 @@ PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
     mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
-  for(i in arena$Trackers){
-    tmp<-Arena.GetTracker(arena,i)
-    PlotX(tmp,range)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    PlotX(t,range)
   }
   if(WriteToPDF==TRUE){
     #graphics.off()
@@ -273,27 +285,10 @@ PlotY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
     mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
-  for(i in arena$Trackers){
-    tmp<-Arena.GetTracker(arena,i)
-    PlotY(tmp,range)
-  }
-  if(WriteToPDF==TRUE){
-    #graphics.off()
-    mydev.off(fname)
-  }
-}
-
-PlotX2.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$DataDir,"/",arena$Name,"_XPlots2.pdf",sep="")
-  tmp.list<-list()
-  if(WriteToPDF==TRUE) {
-    #pdf(fname,paper="USr",onefile=TRUE)
-    mypdf(fname,res = 600, height = 9, width = 11, units = "in")
-    par(mfrow=c(3,2))
-  }
-  for(i in arena$Trackers){
-    tmp<-Arena.GetTracker(arena,i)
-    PlotX.Tracker(tmp,range)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    PlotY(t,range)
   }
   if(WriteToPDF==TRUE){
     #graphics.off()
@@ -360,21 +355,22 @@ multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL) {
 }
 
 SmoothTransitions.Arena<-function(arena,minRun=1){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     t2<-SmoothTransitions(t)
-    arena[[tmp]]<-t2
+    nm<-paste("Tracker",tt$TrackingRegion,tt$ObjectID,sep="_")
+    arena[[nm]]<-t2
   }
   arena
 }
 
 AnalyzeTransitions.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE){
   result<-list()
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
-    result[[tmp]]<-AnalyzeTransitions(t,range,ShowPlot)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    result[[t$Name]]<-AnalyzeTransitions(t,range,ShowPlot)
   }
   result
 }
@@ -385,8 +381,9 @@ PIPlots.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
     ##mypdf(fname,paper="letter",onefile=TRUE)
     mypdf(fname,res = 600, height = 11, width = 9, units = "in")
   }
-  for(i in arena$Trackers){
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     PIPlots(t,range)
   }
   if(WriteToPDF==TRUE){
@@ -442,20 +439,27 @@ Trim.Arena<-function(arena, matingtime_min, duration_min){
   arena
 }
 
-DeleteTracker.Arena<-function(arena, trackerID){  
-  tmp2<-paste("Tracker_",trackerID,sep="")  
-  arena[[tmp2]]<-NULL
-  arena$Trackers<-arena$Trackers[arena$Trackers!=trackerID]  
-  arena
+Arena.GetTracker<-function(arena,id){
+  if(length(id)<2){
+    tmp<-paste("Tracker_",id,sep="")  
+  }
+  else if(length(id)==2){
+    tmp<-paste("Tracker_",id$TrackingRegion,"_",id$ObjectID,sep="")
+  }
+  else{
+    tmp=""
+  }
+  arena[[tmp]]
 }
 
 
-ReportDurations.Arena<-function(arena){
-  result<-data.frame(matrix(c(0,0,0),nrow=1))
-  names(result)<-c("Tracker","StartTime","Duration")  
+ReportDuration.Arena<-function(arena){
+  result<-data.frame(matrix(c(0,"None",0,0),nrow=1))
+  names(result)<-c("ObjectID","TrackingROI","StartTime","Duration")  
   index<-1
-    for(j in arena$Trackers){
-      t<-Arena.GetTracker(arena,j)
+  for(j in 1:nrow(arena$Trackers)){
+      tt<-arena$Trackers[j,]
+      t<-Arena.GetTracker(arena,tt)
       tmp<-t$RawData
       if(nrow(tmp)<2) {
         start<-NA
@@ -465,7 +469,7 @@ ReportDurations.Arena<-function(arena){
         start<-tmp$Minutes[1]
         duration<-tmp$Minutes[length(tmp$Minutes)]-start
       }
-      result[index,]<-c(j,start,duration)
+      result[index,]<-c(arena$Trackers$ObjectID[j],arena$Trackers$TrackingRegion[j],start,duration)
       index<-index+1
     }  
   result

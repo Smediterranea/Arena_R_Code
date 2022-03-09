@@ -42,9 +42,10 @@ TrackerClass.RawDataFrame <-
     if (!is.null(expDesign)) {
       expDesign = subset(expDesign, expDesign$ID == id)
     }
-    
+    name<-paste(id$TrackingRegion,"_",id$ObjectID,sep="")
     data = list(
       ID = id,
+      Name=name,
       ROI = roisize,
       CountingROI = theCountingROI,
       Parameters = parameters,
@@ -305,7 +306,7 @@ Summarize.Tracker <- function(tracker,
   
   avg.speed <- mean(rd$ModifiedSpeed_mm_s)
   
-  regions <- levels(rd$CountingRegion)
+  regions <- tracker$CountingROI
   r.tmp <- matrix(rep(-1, length(regions)), nrow = 1)
   for (i in 1:length(r.tmp)) {
     r.tmp[1, i] <- sum(rd$CountingRegion == regions[i])
@@ -399,7 +400,7 @@ PlotXY.Tracker <-
     x <- ggplot(rd, aes(Xpos_mm, Ypos_mm, color = Movement)) +
       geom_point() +
       coord_fixed() +
-      ggtitle(paste("Chamber:", tracker$Chamber, " Tracker:", tracker$ID, sep =
+      ggtitle(paste("Tracker:", tracker$Name, sep =
                       "")) +
       xlab("XPos (mm)") + ylab("YPos (mm)") + xlim(xlims) +
       ylim(ylims)
@@ -418,8 +419,8 @@ PlotX.Tracker <- function(tracker, range = c(0, 0)) {
     c(tracker$ROI[1] / -2, tracker$ROI[1] / 2) * tracker$Parameters$mmPerPixel
   print(
     ggplot(rd, aes(Minutes, Xpos_mm),
-           xlab = "Minutes", ylab = "XPos (mm)") + ggtitle(paste(" ID:", tracker$ID, sep =
-                                                                   "")) +
+           xlab = "Minutes", ylab = "XPos (mm)") +  ggtitle(paste("Tracker:", tracker$Name, sep =
+                                                                    "")) +
       geom_rect(
         aes(
           xmin = Minutes,
@@ -448,8 +449,8 @@ PlotY.Tracker <- function(tracker, range = c(0, 0)) {
     c(tracker$ROI[2] / -2, tracker$ROI[2] / 2) * tracker$Parameters$mmPerPixel
   print(
     ggplot(rd, aes(Minutes, Ypos_mm),
-           xlab = "Minutes", ylab = "YPos (mm)") + ggtitle(paste(" ID:", tracker$ID, sep =
-                                                                   "")) +
+           xlab = "Minutes", ylab = "YPos (mm)") +  ggtitle(paste("Tracker:", tracker$Name, sep =
+                                                                    "")) +
       geom_rect(
         aes(
           xmin = Minutes,
@@ -620,6 +621,7 @@ GetQuartileXPositions.Tracker <-
       data.frame(tracker$ID, Walking, MicroMoving, Resting, Sleeping, Total)
     names(tmp) <-
       c("ID",
+        "TrackingROI",
         "Walking",
         "MicroMoving",
         "Resting",
@@ -627,6 +629,28 @@ GetQuartileXPositions.Tracker <-
         "Total")
     tmp
   }
+
+
+ReportDuration.Tracker<-function(tracker){
+  result<-data.frame(matrix(c(0,"None",0,0),nrow=1))
+  names(result)<-c("ObjectID","TrackingROI","StartTime","Duration")  
+  index<-1
+    t<-tracker
+    tmp<-t$RawData
+    if(nrow(tmp)<2) {
+      start<-NA
+      duration<-NA
+    }
+    else {
+      start<-tmp$Minutes[1]
+      duration<-tmp$Minutes[length(tmp$Minutes)]-start
+    }
+    result[index,]<-c(tracker$ID$ObjectID,tracker$ID$TrackingRegion,start,duration)
+    index<-index+1
+  result
+}
+
+
 
 ## Functions that just catch misapplied higher functions
 FinalPI.Tracker <- function(tracker) {
