@@ -53,12 +53,12 @@ GetInteractionResults <- function(ic, p, interaction.cutoff.mm = 8) {
       d <- sqrt(diffx * diffx + diffy * diffy)
       results$Distance[i] <- d
       times[i] <- tmp$Time[1]
-      msec[i] <- tmp$MSec[1]
+      msec[i] <- tmp$Millisec[1]
     }
     else {
       results$Distance[i] <- 0
       times[i] <- tmp$Time
-      msec[i] <- tmp$MSec
+      msec[i] <- tmp$Millisec
     }
     
   }

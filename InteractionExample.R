@@ -1,3 +1,4 @@
+rm(list=ls())
 require(ggplot2)
 
 source("ParametersClass.R")
@@ -5,7 +6,7 @@ source("InteractionCounter.R")
 
 
 ##***********
-datadir<-"Data"
+datadir<-"AttractivenessData"
 distance.for.interaction.mm <-8
 binsize.in.min<-30
 ##***********
