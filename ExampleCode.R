@@ -28,7 +28,7 @@ p<-ParametersClass.TwoChoiceTracker()
 ## If your data were collected with a live (i.e., FLIR) camera,
 ## then FPS should remain NA because the interframe time is 
 ## saved in the output file by DTrack.
-p<-Parameters.SetParameter(p,FPS=2)
+p<-Parameters.SetParameter(p,FPS=10)
 
 ## Check out the parameters and ensure that they are appropriate.
 ## Notably, make sure the mmPerPixel value is correct for your setup.
@@ -43,7 +43,7 @@ p<-Parameters.SetParameter(p,FPS=2)
 ## a parameter to the ArenaClass function
 ## ArenaClass<-function(parameters,dirname="Data")
 
-arena<-ArenaClass(p,dirname="Data2")
+arena<-ArenaClass(p,dirname="TrackingData")
 
 ## Basic movement information and region summaries can be obtained from
 Summarize(arena)

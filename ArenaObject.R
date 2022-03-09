@@ -19,7 +19,9 @@ ArenaClass<-function(parameters,dirname="Data"){
   
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}))
 
-  trackers<-unique(theData$Name)
+  tmp<-unique(theData[,c("ObjectID","TrackingRegion")])
+  
+  trackers<-tmp
   
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
@@ -46,23 +48,22 @@ ArenaClass<-function(parameters,dirname="Data"){
   arena <- list(Name = "Arena1", Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=dirname)
 
 
-  if(length(trackers)>0){
-    for(i in trackers){
-      nm<-paste("Tracker",i,sep="_")
-      roinm<-i
+  if(nrow(trackers)>0){
+    for(i in 1:nrow(trackers)){
+      nm<-paste("Tracker",trackers[i,2],trackers[i,1],sep="_")
+      roinm<-trackers$TrackingRegion[i]
       theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
       theCountingROI<-roi$Name[roi$Type=="Counting"]
       if(length(theCountingROI)<1)
         theCountingROI<-"None"
-      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI,theCountingROI,expDesign)
+      tmp<-TrackerClass.RawDataFrame(trackers[i,],parameters,theData,theROI,theCountingROI,expDesign)
       arena<-c(arena,setNames(list(nm=tmp),nm))
     }
   }
   class(arena)="Arena"
   
-  st<-paste("ARENA1",id,sep="")
-  assign(st,data,pos=1)  
-  print(paste(filename,"saved as",st))
+  assign("ARENA1",arena,pos=1)  
+  print(paste("ARENA1 object saved."))
   arena
 }
 
