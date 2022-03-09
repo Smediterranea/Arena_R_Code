@@ -650,6 +650,27 @@ ReportDuration.Tracker<-function(tracker){
   result
 }
 
+GetRuns.Tracker<-function(tracker){
+  data<-Tracker.GetRawData(tracker)
+  tmp<-rle(as.character(data$CountingRegion))
+  tmp<-data.frame(tmp$lengths,tmp$values)
+  names(tmp)<-c("RunDurationFrames","CountingRegion")
+  RunDurationMin<-tmp$RunDurationFrames/tracker$Parameters$FPS/60
+  CumRunDurMin<-cumsum(RunDurationMin)
+  CumRunDurMin<-c(0,CumRunDurMin)
+  tmp<-data.frame(tmp,RunDurationMin,CumRunDurMin)
+  print(tmp)
+  tmp
+}
+
+GetFirstRegionDuration.Tracker<-function(tracker,time_min){
+  ## This function returns the duration info
+  ## for the first duration >= time_min
+  tmp<-GetRuns.Tracker(tracker)
+  tmp2<-tmp[tmp$CountingRegion!="None",]
+  tmp2<-tmp2[tmp2$RunDurationMin>=time_min,]
+  tmp2[1,]
+}
 
 
 ## Functions that just catch misapplied higher functions

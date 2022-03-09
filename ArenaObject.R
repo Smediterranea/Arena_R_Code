@@ -420,21 +420,24 @@ mydev.off = function(pdfname, mypattern="MYTEMPPNG", copts = "") {
 }
 
 Trim.Arena<-function(arena, matingtime_min, duration_min){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     tmp2 <- GetFirstRegionDuration.Tracker(t, matingtime_min)
     tmp2 <- tmp2[, 4]
     tmp3<-tmp2+duration_min
+    print(tmp3)
     t$RawData<-subset(t$RawData,t$RawData$Minutes>tmp2 & t$RawData$Minutes<=tmp3)
     if(nrow(t$RawData)<1){
-      mess<-paste("**Warning! Tracker ",i,"has no remaining data**\n")
+      mess<-paste("**Warning! Tracker ",t$Name,"has no remaining data**\n")
       cat(mess)
     }
     if("TwoChoiceTracker" %in% class(t)){
       t$PIData<-subset(t$PIData,t$PIData$Minutes>tmp2 & t$PIData$Minutes<=tmp3)
     }
-    arena[[tmp]]<-t
+    nm<-paste("Tracker",t$ID$TrackingRegion,t$ID$ObjectID,sep="_")
+    print(nm)
+    arena[[nm]]<-t
   }
   arena
 }

@@ -30,7 +30,7 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   total.sec<-total.min*60
   
   results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-  names(results)<-c("ID","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+  names(results)<-c("ObjectID","TrackingROI","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   results
 }
   
