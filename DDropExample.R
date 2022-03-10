@@ -15,7 +15,8 @@ source("GeneralUtility.R")
 
 ## In the output directory make sure to include the Experiment .xlxs file as well
 ## as the tacking csv files for each run. The original xlxs file is used to define
-## the lanes.
+## the lanes. An experimental design file is optional (ExpDesign.csv) but helps
+## simply downstream organization.
 dirname<-"DDropData"
 parameters<-ParametersClass.DDrop()
 
@@ -30,7 +31,10 @@ write.table(results,"clipboard",sep="\t",row.names=FALSE)
 ## Isolate the data only after the flies are first seen above
 ## the basement mask.
 zeroed.results<-ZeroDDropResults(results)
-write.table(results,"clipboard",sep="\t",row.names=FALSE)
+write.table(zeroed.results,"clipboard",sep="\t",row.names=FALSE)
+outputfile<- paste("./",dirname,"/ZeroedDDropResults.csv",sep="")
+write.csv(zeroed.results,file=outputfile,row.names=FALSE)
+
 
 ## Plots can be useful as well
 PlotY(ARENA1)

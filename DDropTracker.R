@@ -1,6 +1,18 @@
 require(stringr)
 
 DDropTracker.ProcessDDropTracker<-function(tracker){
+  if (!is.null(tracker$ExpDesign)) {
+    a <- "ObjectID" %in% colnames(tracker$ExpDesign)
+    b <- "TrackingRegion" %in% colnames(tracker$ExpDesign)
+    c <- "Treatment" %in% colnames(tracker$ExpDesign)
+    d <- "Run" %in% colnames(tracker$ExpDesign)
+    e <- c(a, b, c, d)
+    if (sum(e) < 4) {
+      stop(
+        "Experimental design file requires Run, ObjectID,TrackingRegion,and Treatments columns."
+      )
+    }
+  }
   class(tracker)<-c("DDropTracker",class(tracker))
   tracker
 }
@@ -28,9 +40,15 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   
   total.min<-rd$Minutes[nrow(rd)]-rd$Minutes[1]
   total.sec<-total.min*60
-  
-  results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-  names(results)<-c("ObjectID","TrackingRegion","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+  if(is.null(tracker$ExpDesign)){
+    results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+    names(results)<-c("ObjectID","TrackingRegion","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+  }
+  else{
+    results<-data.frame(tracker$ID,tracker$ExpDesign$Treatment,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+    names(results)<-c("ObjectID","TrackingRegion","Treatment","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+    
+  }
   results
 }
   

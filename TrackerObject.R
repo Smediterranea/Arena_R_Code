@@ -454,10 +454,15 @@ PlotY.Tracker <- function(tracker, range = c(0, 0)) {
   Movement <- factor(tmp2)
   ylims <-
     c(tracker$ROI[2] / -2, tracker$ROI[2] / 2) * tracker$Parameters$mmPerPixel
+  if(is.null(tracker$ExpDesign)){
+    title<-paste("Tracker:", tracker$Name, sep ="")
+  }
+  else{
+    title<-paste("Tracker: ", tracker$Name, "  Treatment: ",tracker$ExpDesign$Treatment[1],sep ="")
+  }
   print(
     ggplot(rd, aes(Minutes, Ypos_mm),
-           xlab = "Minutes", ylab = "YPos (mm)") +  ggtitle(paste("Tracker:", tracker$Name, sep =
-                                                                    "")) +
+           xlab = "Minutes", ylab = "YPos (mm)") +  ggtitle(title) +
       geom_rect(
         aes(
           xmin = Minutes,

@@ -129,6 +129,7 @@ Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
   else {
     files <- paste(datadir, files, sep = "")    
     expDesign <- read.csv(files[1])    
+    expDesign<-subset(expDesign,expDesign$Run==runNumber)
   }
   
   arenaName<-paste("Arena",runNumber,sep="")
