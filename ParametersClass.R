@@ -84,7 +84,7 @@ ParametersClass.TwoChoiceTracker=function(){
 ParametersClass.DDrop=function(){
   p<-ParametersClass()
   p<-Parameters.SetParameter(p,TType="DDropTracker")
-  p$mmPerPixel<-0.225 # THIS NEEDS TO BE CHANGED
+  p$mmPerPixel<-0.079 # This is for the latest DDrop with BlackFly
   p$FPS<-NA
   p$Smooth.Speed.Data<-FALSE
   p$Filter.Sleep<-FALSE

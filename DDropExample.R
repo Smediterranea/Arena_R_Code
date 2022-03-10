@@ -38,4 +38,6 @@ write.csv(zeroed.results,file=outputfile,row.names=FALSE)
 
 ## Plots can be useful as well
 PlotY(ARENA1)
-Plot.All.DDropArenas() ## This takes some time but will output pdf files
+
+## This takes some time but will output pdf files. You need Imagemagik as noted above.
+Plot.All.DDropArenas() 
