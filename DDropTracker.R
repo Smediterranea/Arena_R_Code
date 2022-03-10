@@ -6,10 +6,11 @@ DDropTracker.ProcessDDropTracker<-function(tracker){
     b <- "TrackingRegion" %in% colnames(tracker$ExpDesign)
     c <- "Treatment" %in% colnames(tracker$ExpDesign)
     d <- "Run" %in% colnames(tracker$ExpDesign)
-    e <- c(a, b, c, d)
-    if (sum(e) < 4) {
+    e <- "Fly" %in% colnames(tracker$ExpDesign)
+    f <- c(a, b, c, d,e)
+    if (sum(f) < 5) {
       stop(
-        "Experimental design file requires Run, ObjectID,TrackingRegion,and Treatments columns."
+        "Experimental design file requires Run, ObjectID,TrackingRegion,Fly, and Treatments columns."
       )
     }
   }
@@ -45,13 +46,28 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
     names(results)<-c("ObjectID","TrackingRegion","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   }
   else{
-    results<-data.frame(tracker$ID,tracker$ExpDesign$Treatment,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-    names(results)<-c("ObjectID","TrackingRegion","Treatment","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
-    
+    results<-data.frame(tracker$ID,tracker$ExpDesign$Fly,tracker$ExpDesign$Treatment,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+    names(results)<-c("ObjectID","TrackingRegion","Fly","Treatment","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   }
   results
 }
   
+
+GetAveragedPerFlyResults<-function(results){
+  colstoget<-c("ObsSeconds","SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90","TotalYDist","TotalUpDist",
+               "AvgSpeed","AvgTop10Speed","TotalDist_mm")
+  fly<-results$Fly
+  data<-results[,colstoget]
+  results2<-aggregate(data,list(Fly=fly),FUN=mean,na.rm=TRUE)
+  Treatment<-rep(NA,nrow(results2))
+  for(i in 1:length(Treatment)){
+    tmp<-results$Treatment[results$Fly==results2$Fly[i]]
+    Treatment[i]<-tmp[1]
+  }
+  results2<-data.frame(Treatment,results2)
+  results2
+}
+
 ## Result is in seconds
 Tracker.GetFirstTimeAboveYPos<-function(tracker,percentclimb){
   result<-NA
@@ -151,8 +167,21 @@ Summarize.All.DDropArenas<-function(){
   else {
     result<-NA
   }
+  results2<-GetAveragedPerFlyResults(result)
+  result<-list(PerRun=result,PerFly=results2)
   result
 }
+
+ZeroDDropResults<-function(results){
+  new.results<-results$PerRun
+  colsToZero<-c("SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90")
+  new.results[,colsToZero]<-new.results[,colsToZero] - new.results[,"SecFirstSeen"]
+  results2<-GetAveragedPerFlyResults(new.results)
+  new.results<-list(PerRun=new.results,PerFly=results2)
+  new.results
+}
+
+
 
 Plot.All.DDropArenas<-function(){
   objects<-ls(pos=1)

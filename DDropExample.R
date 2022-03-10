@@ -21,19 +21,26 @@ dirname<-"DDropData"
 parameters<-ParametersClass.DDrop()
 
 ReadDDropFiles(parameters,dirname)
+
+## This results object will have data for each run as well as average for each
+## fly.
 results<-Summarize.All.DDropArenas()
-outputfile<- paste("./",dirname,"/DDropResults.csv",sep="")
-write.csv(results,file=outputfile,row.names=FALSE)
+outputfile<- paste("./",dirname,"/DDropResultsPerRun.csv",sep="")
+write.csv(results$PerRun,file=outputfile,row.names=FALSE)
+outputfile<- paste("./",dirname,"/DDropResultsPerFly.csv",sep="")
+write.csv(results$PerFly,file=outputfile,row.names=FALSE)
 
 ## Or write to clipboard to paste into excel
+## But this will CBind the two components of the list.
 write.table(results,"clipboard",sep="\t",row.names=FALSE)
 
 ## Isolate the data only after the flies are first seen above
 ## the basement mask.
 zeroed.results<-ZeroDDropResults(results)
-write.table(zeroed.results,"clipboard",sep="\t",row.names=FALSE)
-outputfile<- paste("./",dirname,"/ZeroedDDropResults.csv",sep="")
-write.csv(zeroed.results,file=outputfile,row.names=FALSE)
+outputfile<- paste("./",dirname,"/ZeroedDDropResultsPerRun.csv",sep="")
+write.csv(zeroed.results$PerRun,file=outputfile,row.names=FALSE)
+outputfile<- paste("./",dirname,"/ZeroedDDropResultsPerFly.csv",sep="")
+write.csv(zeroed.results$PerFly,file=outputfile,row.names=FALSE)
 
 
 ## Plots can be useful as well
