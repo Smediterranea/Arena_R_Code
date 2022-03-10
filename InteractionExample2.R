@@ -11,7 +11,7 @@ p <- ParametersClass.InteractionCounter()
 ##***********
 
 ##***********
-## Run this section of code to analyze all Data directories, assuming left/right chambers
+## Run this section of code to analyze all Data directories (must have "Data" in their name), assuming left/right chambers
 dirs <- list.dirs(full.names = FALSE, recursive = FALSE)
 
 for (i in dirs) {

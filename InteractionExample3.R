@@ -3,7 +3,8 @@ require(ggplot2)
 source("ParametersClass.R")
 source("InteractionCounter.R")
 
-
+## This is meant to be used for analysis of movie files (not live recording)
+## with FPS=10 frames per sec during recording. It also assumes six tracking regions T_0 ... T_5
 ##***********
 datadir<-"Data"
 distance.for.interaction.mm <-8
