@@ -36,4 +36,23 @@ p<-Parameters.SetParameter(p,mmPerPixel=0.2156)
 ## to end in Data_#.csv where # is a number, the original excel experiment file
 ## from DTrack, and and ExpDesign.csv file with four columns (and order)
 ## TrackingRegion, ObjectID, CountingRegion, Treatment
-arena<-ArenaClass(p,dirname="TwoChoiceTrackingData")
+dirname<-"TwoChoiceTrackingData"
+arena<-ArenaClass(p,dirname)
+
+## Get the basic movement data and treatment frame counts
+## Also outputs some simple barplots of movement.
+results<-Summarize(arena)
+write.csv(results,file=paste(dirname,"/Results.csv",sep=""),row.names=FALSE)
+
+## Plot the relevant data.  Plots will be output to PDF, not the ImageMagik requirement above.
+##PlotX(arena)
+##PlotY(arena)
+PlotXY(arena)
+PIPlots(arena)
+
+## Additional plots and outputs are available for individual trackers, such as
+TimeDependentPIPlots.TwoChoiceTracker(arena$Tracker_T6_0)
+
+## See Scott for more details.
+
+
