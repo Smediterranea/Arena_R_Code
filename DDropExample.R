@@ -31,7 +31,6 @@ write.table(results,"clipboard",sep="\t",row.names=FALSE)
 ## the basement mask.
 zeroed.results<-ZeroDDropResults(results)
 
-
 ## Plots can be useful as well
 PlotY(ARENA1)
 Plot.All.DDropArenas() ## This takes some time but will output pdf files

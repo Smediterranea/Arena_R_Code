@@ -18,3 +18,19 @@ CleanTrackers()
 p<-ParametersClass()
 p<-Parameters.SetParameter(p,FPS=10)
 arena<-ArenaClass(p,dirname="TrackingData")
+
+rm(list=ls())
+
+require(readr)
+source("ParametersClass.R")
+source("TrackerObject.R")
+source("ArenaObject.R")
+source("GeneralUtility.R")
+
+## In the output directory make sure to include the Experiment .xlxs file as well
+## as the tacking csv files for each run. The original xlxs file is used to define
+## the lanes.
+dirname<-"DDropData"
+parameters<-ParametersClass.DDrop()
+
+ReadDDropFiles(parameters,dirname)

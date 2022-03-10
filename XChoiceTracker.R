@@ -5,13 +5,14 @@ XChoiceTracker.ProcessXTracker<-function(tracker){
     stop("X choice tracker requires experimental design.")
   }
   
-  a<-"ID" %in% colnames(tracker$ExpDesign)   
-  b<-"Region" %in% colnames(tracker$ExpDesign)   
-  c<-"Treatment" %in% colnames(tracker$ExpDesign)   
-  d<-"PIMult" %in% colnames(tracker$ExpDesign)   
-  e<-c(a,b,c,d)
-  if(sum(e)<4){
-    stop("Experimental design file requires ID, Region, PiMult, and Treatments columns.")
+  a<-"ObjectID" %in% colnames(tracker$ExpDesign)
+  b<-"TrackingRegion" %in% colnames(tracker$ExpDesign)   
+  c<-"CountingRegion" %in% colnames(tracker$ExpDesign)   
+  d<-"Treatment" %in% colnames(tracker$ExpDesign)   
+  e<-"PIMult" %in% colnames(tracker$ExpDesign)   
+  f<-c(a,b,c,d,e)
+  if(sum(f)<5){
+    stop("Experimental design file requires ObjectID,TrackingRegion, CountingRegion, PiMult, and Treatments columns.")
   }
   tracker <- XChoiceTracker.SetXData(tracker)
   class(tracker)<-c("XChoiceTracker",class(tracker))
@@ -44,15 +45,15 @@ Summarize.XChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){
   }
 
   treatments<-c(treatments,"None")
-  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ID == tracker$ID)      
-  a<-sum(rd$Region==tmp$Region[tmp$Treatment==treatments[1]])
-  b<-sum(rd$Region==tmp$Region[tmp$Treatment==treatments[2]])
-  c<-sum(rd$Region==treatments[3])
+  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ObjectID == tracker$ID$ObjectID && tracker$ExpDesign$TrackingRegion == tracker$ID$TrackingRegion)      
+  a<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[1]])
+  b<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[2]])
+  c<-sum(rd$CountingRegion==treatments[3])
   
   r.tmp<-matrix(c(a,b,c),nrow=1)
   
   results<-data.frame(tracker$ID,total.min,total.dist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,avg.speed,range[1],range[2],r.tmp)
-  names(results)<-c("ID","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
+  names(results)<-c( "ObjectID","TrackingROI","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
   
   if(ShowPlot){
     tmp<-data.frame(c(results$PercWalking,results$PercMicroMoving,results$PercResting,results$PercSleeping),rep("one",4), factor(c("Walking","MicroMoving","Resting","Sleeping")))
@@ -75,7 +76,7 @@ PlotX.XChoiceTracker<-function(tracker,range = c(0,0)){
   xlims<-c(tracker$ROI[1]/-2,tracker$ROI[1]/2)*tracker$Parameters$mmPerPixel
   ggplot(rd, aes(x = Xpos_mm,fill=Movement)) + xlab("XPos (mm)")+
     geom_density(alpha = .3) + #alpha used for filling the density
-    ggtitle(paste(" Tracker:",tracker$ID,sep="")) +
+    ggtitle(paste(" Tracker:",tracker$Name,sep="")) +
     geom_vline(data = means, aes(xintercept = Movement.mean,color=Movement),
                linetype = "longdash", size=1) + xlim(xlims)
 }

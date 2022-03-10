@@ -4,7 +4,8 @@ require(data.table)
 require(reshape2)
 require(readxl)
 require(tibble)
-
+require(plyr)
+require(dplyr)
 
 
 ## Public Functions ##
@@ -19,9 +20,16 @@ ArenaClass<-function(parameters,dirname="Data"){
   
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}))
 
-  tmp<-unique(theData[,c("ObjectID","TrackingRegion")])
+  ## Try to correct previous version files.
+  if(!("TrackingRegion" %in% names(theData))){
+    names(theData)[names(theData) == "Region"] <- "CountingRegion"
+    names(theData)[names(theData) == "Name"] <- "TrackingRegion"
+  }
   
-  trackers<-tmp
+  tmp<-unique(theData[,c("ObjectID","TrackingRegion")])
+  cf<-tmp$TrackingRegion
+  tmp2<-str_sort(cf,numeric=TRUE)
+  trackers<-tmp %>% slice(match(tmp2,TrackingRegion))
   
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
@@ -70,7 +78,7 @@ ArenaClass<-function(parameters,dirname="Data"){
 
 ReadDDropFiles<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
-  files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")    
+  files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")   
   if(length(files)<1) {
     cat("No tracking files found.")
     flush.console()      
@@ -79,7 +87,8 @@ ReadDDropFiles<-function(parameters,dirname="Data"){
   files<-paste(datadir,files,sep="")
   for(i in 1:length(files)){
     f<-files[i]
-    runnumber<-readr::parse_number(justfilenames[i])
+    runnumber<-sub(".*Data_","",justfilenames[i])
+    runnumber<-sub("\\.csv","",runnumber)
     Load.DDrop.Object(parameters,f,dirname,runnumber)
   }
 }
@@ -91,8 +100,17 @@ Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
   ## Just for DDrop, the RELY position needs to be inverted (for plotting, etc)
   theData$RelY<-theData$RelY*(-1.0)
   
-  trackers<-unique(theData$Name)
+  if(!("TrackingRegion" %in% names(theData))){
+    names(theData)[names(theData) == "Region"] <- "CountingRegion"
+    names(theData)[names(theData) == "Name"] <- "TrackingRegion"
+  }
   
+  tmp<-unique(theData[,c("ObjectID","TrackingRegion")])
+  cf<-tmp$TrackingRegion
+  tmp2<-str_sort(cf,numeric=TRUE)
+  trackers<-tmp %>% slice(match(tmp2,TrackingRegion))
+  
+
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
   file <- list.files(datadir, pattern = "^[^~].*xlsx")
@@ -117,18 +135,19 @@ Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
   arenaName<-paste("Arena",runNumber,sep="")
   DDrop <- list(Name = arenaName, Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=filename)
   
-  if(length(trackers)>0){
-    for(i in trackers){
-      nm<-paste("Tracker",i,sep="_")
-      roinm<-i
+  if(nrow(trackers)>0){
+    for(i in 1:nrow(trackers)){
+      nm<-paste("Tracker",trackers[i,2],trackers[i,1],sep="_")
+      roinm<-trackers$TrackingRegion[i]
       theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
       theCountingROI<-roi$Name[roi$Type=="Counting"]
       if(length(theCountingROI)<1)
         theCountingROI<-"None"
-      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI,theCountingROI,expDesign)
+      tmp<-TrackerClass.RawDataFrame(trackers[i,],parameters,theData,theROI,theCountingROI,expDesign)
       DDrop<-c(DDrop,setNames(list(nm=tmp),nm))
     }
   }
+  
   class(DDrop)="Arena"
   st<-paste("ARENA",runNumber,sep="")
   assign(st,DDrop,pos=1)  

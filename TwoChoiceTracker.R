@@ -5,12 +5,13 @@ TwoChoiceTracker.ProcessTwoChoiceTracker <- function(tracker) {
     stop("Two choice tracker requires experimental design.")
   }
 
-  a<-"ID" %in% colnames(tracker$ExpDesign)   
-  b<-"Region" %in% colnames(tracker$ExpDesign)   
-  c<-"Treatment" %in% colnames(tracker$ExpDesign)   
-  d<-c(a,b,c)
-  if(sum(d)<3){
-    stop("Experimental design file requires ID, Region, and Treatments columns.")
+  a<-"ObjectID" %in% colnames(tracker$ExpDesign)
+  b<-"TrackingRegion" %in% colnames(tracker$ExpDesign)   
+  c<-"CountingRegion" %in% colnames(tracker$ExpDesign)   
+  d<-"Treatment" %in% colnames(tracker$ExpDesign)   
+  e<-c(a,b,c,d)
+  if(sum(e)<4){
+    stop("Experimental design file requires ObjectID, TrackingRegion, CountingRegion, and Treatments columns.")
   }
 
   if(length(unique(tracker$ExpDesign$Treatment))!=2){    
@@ -31,10 +32,9 @@ TwoChoiceTracker.SetPIData<-function(tracker){
     stop("Wrong number of treatments!") 
   }
 
-  
-  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ID == tracker$ID)  
-  a<-rd$Region==tmp$Region[tmp$Treatment==treatments[1]]
-  b<-rd$Region==tmp$Region[tmp$Treatment==treatments[2]]  
+  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ObjectID == tracker$ID$ObjectID && tracker$ExpDesign$TrackingRegion == tracker$ID$TrackingRegion)      
+  a<-rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[1]]
+  b<-rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[2]]  
  
   pi<-a-b  
   
@@ -65,15 +65,15 @@ Summarize.TwoChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){
   }
 
   treatments<-c(treatments,"None")
-  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ID == tracker$ID)      
-  a<-sum(rd$Region==tmp$Region[tmp$Treatment==treatments[1]])
-  b<-sum(rd$Region==tmp$Region[tmp$Treatment==treatments[2]])
-  c<-sum(rd$Region==treatments[3])
+  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ObjectID == tracker$ID$ObjectID && tracker$ExpDesign$TrackingRegion == tracker$ID$TrackingRegion)      
+  a<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[1]])
+  b<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[2]])
+  c<-sum(rd$CountingRegion==treatments[3])
   
   r.tmp<-matrix(c(a,b,c),nrow=1)
   
   results<-data.frame(tracker$ID,total.min,total.dist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,avg.speed,range[1],range[2],r.tmp)
-  names(results)<-c("ID","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
+  names(results)<-c("ObjectID","TrackingRegion","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
   
   if(ShowPlot){
     tmp<-data.frame(c(results$PercWalking,results$PercMicroMoving,results$PercResting,results$PercSleeping),rep("one",4), factor(c("Walking","MicroMoving","Resting","Sleeping")))
@@ -122,8 +122,6 @@ CumulativePI.TwoChoiceTracker<-function(tracker,range=c(0,0)){
 PIPlots.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   pd<-CumulativePI(tracker,range)
   nms<-names(pd)
-  regions<-colnames(pd)
-  regions<-regions[c(3,4)]
   
   cumsums<-data.frame(c(pd[,1],pd[,1]),c(pd[,3],pd[,4]),rep(c(nms[3],nms[4]),c(length(pd[,1]),length(pd[,1]))),c(pd[,5],pd[,5]))
   names(cumsums)<-c("Minutes","CumSum","Treatment","Indicator")
@@ -132,9 +130,9 @@ PIPlots.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   x<-ggplot(cumsums) + 
     geom_rect(aes(xmin = Minutes, xmax = dplyr::lead(Minutes,default=0), ymin = -Inf, ymax = Inf, fill = factor(Indicator)), show.legend=F)+  
     scale_fill_manual(values = alpha(c("gray", "red"), .07)) +
-    geom_point(aes(Minutes,CumSum,color=Region)) +
-    geom_line(aes(Minutes,CumSum,color=Region)) +
-    ggtitle(paste("Tracker:",tracker$ID, "   Treatment Counts",sep="")) +
+    geom_point(aes(Minutes,CumSum,color=Treatment)) +
+    geom_line(aes(Minutes,CumSum,color=Treatment)) +
+    ggtitle(paste("Tracker:",tracker$Name, "   Treatment Counts",sep="")) +
     xlab("Minutes") + ylab("Frames") + ylim(0,ymax)
     
   y<-ggplot(pd) + 
@@ -142,7 +140,7 @@ PIPlots.TwoChoiceTracker<-function(tracker,range=c(0,0)){
     scale_fill_manual(values = alpha(c("gray", "red"), .07)) +
     geom_point(aes(Minutes,CumPI)) +
     geom_line(aes(Minutes,CumPI)) +
-    ggtitle(paste("Tracker:",tracker$ID, "   Cumulative PI",sep="")) +
+    ggtitle(paste("Tracker:",tracker$Name, "   Cumulative PI",sep="")) +
     xlab("Minutes") + ylab("PI") + ylim(-1,1)
   
   print(x)
@@ -192,7 +190,7 @@ TimeDependentPIPlots.TwoChoiceTracker<-function(tracker,window.size.min=10,step.
     geom_text(check_overlap = TRUE, vjust="inward",hjust="inward", color="red")+
     xlim(Tracker.FirstSampleData(tracker)$Minutes,Tracker.LastSampleData(tracker)$Minutes) +
     ylim(-1,1) +
-    ggtitle(paste("ID:",tracker$ID,"    Time-Dependent PI"))
+    ggtitle(paste("ID:",tracker$Name,"    Time-Dependent PI"))
     
   print(x)
   results  

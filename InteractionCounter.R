@@ -63,7 +63,7 @@ GetInteractionResults <- function(ic, p, interaction.cutoff.mm = 8) {
     
   }
   if(is.na(p$FPS)){
-    Time <- strptime(times, "%m/%d/%Y %H:%M:%OS")
+    Time <- strptime(times, "%m/%d/%Y %H:%M:%S")
     tmp <- msec / 1000
     
     Time$sec <- Time$sec + tmp
@@ -137,8 +137,14 @@ InteractionCounterData <-
       rbindlist(lapply(files, function(x) {
         read.csv(x, header = TRUE)
       }), idcol = "Rep")
+    
+    if(!("TrackingRegion" %in% names(theData))){
+      names(theData)[names(theData) == "Region"] <- "CountingRegion"
+      names(theData)[names(theData) == "Name"] <- "TrackingRegion"
+    }
+    
     if (tracking.region != "all") {
-      theData <- subset(theData, theData$Name == tracking.region)
+      theData <- subset(theData, theData$TrackingRegion == tracking.region)
       outfilename<-paste("InteractionResults_",tracking.region,".csv",sep="")
       outfilename2<-paste("InteractionFreq_",tracking.region,".csv",sep="")
     }
