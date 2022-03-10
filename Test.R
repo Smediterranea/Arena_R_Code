@@ -1,45 +1,36 @@
 
+## Note, high density and PI plots require ImageMagik to be installed for 
+## simpler PDF outputs.
+## Get it here: https://imagemagick.org/script/download.php#windows
+## Also required are the following packages: ggplot2, markovchain, Gmisc, 
+##  data.table, reshape2, readxl, tibble, stringr, readr
+
+
 rm(list=ls())
+## Do one of the following two
 source("ArenaObject.R")
 
-CleanTrackers() 
-p<-ParametersClass.TwoChoiceTracker()
-arena<-ArenaClass(p)
+## Always put this here to remove any old variables
+CleanTrackers()
 
-PlotX(arena)
+## First make a parameter class
+## You can define a generic tracker
+p<-ParametersClass()
+p<-Parameters.SetParameter(p,FPS=10)
+arena<-ArenaClass(p,dirname="TrackingData")
 
+rm(list=ls())
 
-unique(arena$Tracker_3$RawData$Region)
+require(readr)
+source("ParametersClass.R")
+source("TrackerObject.R")
+source("ArenaObject.R")
+source("GeneralUtility.R")
 
+## In the output directory make sure to include the Experiment .xlxs file as well
+## as the tacking csv files for each run. The original xlxs file is used to define
+## the lanes.
+dirname<-"DDropData"
+parameters<-ParametersClass.DDrop()
 
-t1<-arena$Tracker_4$RawData
-
-sleep.possible<-t1$Dist_mm<p$Sleep.Threshold.Distance.mm
-theRuns<-rle(as.character(sleep.possible))
-cumMinRuns<-t1$Minutes[cumsum(theRuns$lengths)]
-RunDurationMin<-cumMinRuns-c(0,cumMinRuns[-length(cumMinRuns)])
-LongEnoughRuns<-RunDurationMin>p$Sleep.Threshold.Min
-LongEnoughSleepRuns<-LongEnoughRuns & as.logical(theRuns$values)
-sleep<-rep(LongEnoughSleepRuns,theRuns$lengths)
-
-
-
-
-
-
-
-
-
-
-
-data<-
-require(readxl)
-  
-cdir<-"./Data/"
-file<-list.files(cdir,pattern="*.xlsx")
-if(length(file)>1)
-  stop("Only allowed one experiment file in the directory")
-file<-paste(cdir,file,sep="")
-test<-read_excel(file,sheet="ROI")
-
-
+ReadDDropFiles(parameters,dirname)

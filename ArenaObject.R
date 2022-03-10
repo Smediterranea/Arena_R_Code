@@ -4,13 +4,14 @@ require(data.table)
 require(reshape2)
 require(readxl)
 require(tibble)
-
+require(plyr)
+require(dplyr)
 
 
 ## Public Functions ##
 ArenaClass<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
-  files <- list.files(path=datadir,pattern = "*TrackingData_[0-9]*.csv")    
+  files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")    
   if(length(files)<1) {
     cat("No tracking files found.")
     flush.console()      
@@ -19,33 +20,139 @@ ArenaClass<-function(parameters,dirname="Data"){
   
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}))
 
-  trackers<-unique(theData$ObjectID)
- 
+  ## Try to correct previous version files.
+  if(!("TrackingRegion" %in% names(theData))){
+    names(theData)[names(theData) == "Region"] <- "CountingRegion"
+    names(theData)[names(theData) == "Name"] <- "TrackingRegion"
+  }
+  
+  tmp<-unique(theData[,c("ObjectID","TrackingRegion")])
+  cf<-tmp$TrackingRegion
+  tmp2<-str_sort(cf,numeric=TRUE)
+  trackers<-tmp %>% slice(match(tmp2,TrackingRegion))
   
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
   file <- list.files(datadir, pattern = "^[^~].*xlsx")
   if(length(file)>1)
     stop("Only allowed one experiment file in the directory")
+   if(length(file)<1)
+    stop("Original experiment file is missing")
   file<-paste(datadir,file,sep="")
-  roi<-read_excel(file,sheet="ROI")
+  roi <- read_excel(file, sheet = "ROI")
+  roi<-subset(roi,roi$Name!="AutoGenerateAntiMask")
   
-  arena<-list(Name=dirname,Trackers=trackers,ROI=roi)
+  ## Look for experimental design file
+  files <- list.files(path = datadir, pattern = "ExpDesign.csv") 
+  if (length(files) < 1) {
+    expDesign <- NULL
+  }
+  else {
+    files <- paste(datadir, files, sep = "")    
+    expDesign <- read.csv(files[1])    
+  }
   
-  if(length(trackers)>0){
-    for(i in trackers){
-      nm<-paste("Tracker",i,sep="_")
-      roinm<-paste("T",i,sep="_")
+  
+  arena <- list(Name = "Arena1", Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=dirname)
+
+
+  if(nrow(trackers)>0){
+    for(i in 1:nrow(trackers)){
+      nm<-paste("Tracker",trackers[i,2],trackers[i,1],sep="_")
+      roinm<-trackers$TrackingRegion[i]
       theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
       theCountingROI<-roi$Name[roi$Type=="Counting"]
       if(length(theCountingROI)<1)
         theCountingROI<-"None"
-      tmp<-TrackerClass.RawDataFrame(i,parameters,theData,theROI,theCountingROI)
+      tmp<-TrackerClass.RawDataFrame(trackers[i,],parameters,theData,theROI,theCountingROI,expDesign)
       arena<-c(arena,setNames(list(nm=tmp),nm))
     }
   }
   class(arena)="Arena"
+  
+  assign("ARENA1",arena,pos=1)  
+  print(paste("ARENA1 object saved."))
   arena
+}
+
+
+ReadDDropFiles<-function(parameters,dirname="Data"){
+  datadir<-paste("./",dirname,"/",sep="")
+  files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")   
+  if(length(files)<1) {
+    cat("No tracking files found.")
+    flush.console()      
+  }
+  justfilenames<-files
+  files<-paste(datadir,files,sep="")
+  for(i in 1:length(files)){
+    f<-files[i]
+    runnumber<-sub(".*Data_","",justfilenames[i])
+    runnumber<-sub("\\.csv","",runnumber)
+    Load.DDrop.Object(parameters,f,dirname,runnumber)
+  }
+}
+
+Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
+  datadir<-paste("./",dirname,"/",sep="")
+  theData<-read.csv(filename, header=TRUE)
+  
+  ## Just for DDrop, the RELY position needs to be inverted (for plotting, etc)
+  theData$RelY<-theData$RelY*(-1.0)
+  
+  if(!("TrackingRegion" %in% names(theData))){
+    names(theData)[names(theData) == "Region"] <- "CountingRegion"
+    names(theData)[names(theData) == "Name"] <- "TrackingRegion"
+  }
+  
+  tmp<-unique(theData[,c("ObjectID","TrackingRegion")])
+  cf<-tmp$TrackingRegion
+  tmp2<-str_sort(cf,numeric=TRUE)
+  trackers<-tmp %>% slice(match(tmp2,TrackingRegion))
+  
+
+  ## Get the tracking ROI and the Counting ROI
+  ## This reg expression tries to avoid temporary files that begin with '~'
+  file <- list.files(datadir, pattern = "^[^~].*xlsx")
+  if(length(file)>1)
+    stop("Only allowed one experiment file in the directory")
+  if(length(file)<1)
+    stop("Original experiment file is missing")
+  file<-paste(datadir,file,sep="")
+  roi <- read_excel(file, sheet = "ROI")
+  roi<-subset(roi,roi$Name!="AutoGenerateAntiMask")
+  
+  ## Look for experimental design file
+  files <- list.files(path = datadir, pattern = "ExpDesign.csv") 
+  if (length(files) < 1) {
+    expDesign <- NULL
+  }
+  else {
+    files <- paste(datadir, files, sep = "")    
+    expDesign <- read.csv(files[1])    
+  }
+  
+  arenaName<-paste("Arena",runNumber,sep="")
+  DDrop <- list(Name = arenaName, Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=filename)
+  
+  if(nrow(trackers)>0){
+    for(i in 1:nrow(trackers)){
+      nm<-paste("Tracker",trackers[i,2],trackers[i,1],sep="_")
+      roinm<-trackers$TrackingRegion[i]
+      theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
+      theCountingROI<-roi$Name[roi$Type=="Counting"]
+      if(length(theCountingROI)<1)
+        theCountingROI<-"None"
+      tmp<-TrackerClass.RawDataFrame(trackers[i,],parameters,theData,theROI,theCountingROI,expDesign)
+      DDrop<-c(DDrop,setNames(list(nm=tmp),nm))
+    }
+  }
+  
+  class(DDrop)="Arena"
+  st<-paste("ARENA",runNumber,sep="")
+  assign(st,DDrop,pos=1)  
+  print(paste("DDrop run",filename,"saved as",st))
+  DDrop
 }
 
 Arena.ChangeParameterObject<-function(arena,newP) {
@@ -58,14 +165,22 @@ Arena.ChangeParameterObject<-function(arena,newP) {
 }
 
 Arena.GetTracker<-function(arena,id){
-  tmp<-paste("Tracker_",id,sep="")
+  if(length(id)<2){
+    tmp<-paste("Tracker_",id,sep="")  
+  }
+  else if(length(id)==2){
+    tmp<-paste("Tracker_",id$TrackingRegion,"_",id$ObjectID,sep="")
+  }
+  else{
+    tmp=""
+  }
   arena[[tmp]]
 }
 
 GetMeanXPositions.Arena<-function(arena,range=c(0,0)){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     tmps<-GetMeanXPositions.Tracker(t,range)
     if(exists("result",inherits = FALSE)==TRUE){
       result<-rbind.missing(result,tmps)       
@@ -78,9 +193,9 @@ GetMeanXPositions.Arena<-function(arena,range=c(0,0)){
 }
 
 GetQuartileXPositions.Arena<-function(arena,quartile=1,range=c(0,0)){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     tmps<-GetQuartileXPositions.Tracker(t,quartile,range)
     if(exists("result",inherits = FALSE)==TRUE){
       result<-rbind.missing(result,tmps)       
@@ -93,13 +208,12 @@ GetQuartileXPositions.Arena<-function(arena,quartile=1,range=c(0,0)){
 }
 
 Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     tmps<-Summarize(t,range,FALSE)
     if(exists("result",inherits = FALSE)==TRUE){
-      ##result<-rbind(result,tmps)       
-      result<-rbind.missing(result,tmps)       
+      result<-rbind(result,tmps)       
     }
     else {
       result<-tmps     
@@ -107,28 +221,36 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
   }
   if(ShowPlot==TRUE){
     if(WriteToPDF==TRUE) {
-      fname<-paste("./",arena$Name,"/Arena_SummaryPlots.pdf",sep="")
+      fname<-paste("./",arena$DataDir,"/",arena$Name,"_SummaryPlots.pdf",sep="")
       pdf(fname,paper="USr",onefile=TRUE)
       par(mfrow=c(3,2))
     }
-    tmp.result<-result[,c(1,4,5,6,7)]
-    tmp.result1<-melt(tmp.result,id.var="ID")
-    names(tmp.result1)<-c("ID","Type","value")
+    tmp.result<-result[,c("ObjectID","TrackingROI","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result[is.na(tmp.result)]<-0
+    
+    tmp.result1<-melt(tmp.result,id.var=c("TrackingROI","ObjectID"))
+    tmp.result1<-data.frame(paste(tmp.result1$TrackingROI,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
+    names(tmp.result1)<-c("ID","TrackingROI","ObjectID","Type","value")
+    
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
       geom_bar(stat = "identity")+ggtitle(paste("Arena"," -- Distribution")) +
       labs(x="Tracker ID",y="Fraction"))
     
     ## Now reflect total movement
-    tmp.result<-result[,c(1,4,5,6,7)]
-    tmp.result[,2]<-result[,4]*result$TotalDist_mm
-    tmp.result[,3]<-result[,5]*result$TotalDist_mm
-    tmp.result[,4]<-result[,6]*result$TotalDist_mm
-    tmp.result[,5]<-result[,7]*result$TotalDist_mm
-    tmp.result1<-melt(tmp.result,id.var="ID")
-    names(tmp.result1)<-c("ID","Type","value")
+    tmp.result<-result[,c("ObjectID","TrackingROI","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result[is.na(tmp.result)]<-0
+    
+    tmp.result[,"PercSleeping"]<-result[,"PercSleeping"]*result$TotalDist_mm
+    tmp.result[,"PercWalking"]<-result[,"PercWalking"]*result$TotalDist_mm
+    tmp.result[,"PercMicroMoving"]<-result[,"PercMicroMoving"]*result$TotalDist_mm
+    tmp.result[,"PercResting"]<-result[,"PercResting"]*result$TotalDist_mm
+    tmp.result1<-melt(tmp.result,id.var=c("TrackingROI","ObjectID"))
+    tmp.result1<-data.frame(paste(tmp.result1$TrackingROI,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
+    names(tmp.result1)<-c("ID","TrackingROI","ObjectID","Type","value")
+    
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
             geom_bar(stat = "identity")+ggtitle(paste("Arena",arena$Name," -- Total Movement")) +
-            labs(x="Tracker ID",y="Frames"))
+            labs(x="Tracker ID",y="Distance (mm)"))
     if(WriteToPDF==TRUE){
       graphics.off()
     }
@@ -137,16 +259,17 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
 }
 
 PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_XY.pdf",sep="")
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_XYPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
     #pdf(fname,paper="letter",onefile=TRUE)
     mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
-  for(i in arena$Trackers){
-    tmp<-Arena.GetTracker(arena,i)
-    PlotXY(tmp,range)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    PlotXY(t,range)
   }
   if(WriteToPDF==TRUE){
     #graphics.off()
@@ -155,16 +278,17 @@ PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
 }
 
 PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_XPlots.pdf",sep="")
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_XPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
     #pdf(fname,paper="USr",onefile=TRUE)
     mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
-  for(i in arena$Trackers){
-    tmp<-Arena.GetTracker(arena,i)
-    PlotX(tmp,range)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    PlotX(t,range)
   }
   if(WriteToPDF==TRUE){
     #graphics.off()
@@ -172,17 +296,18 @@ PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   }
 }
 
-PlotX2.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_XPlots2.pdf",sep="")
+PlotY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_YPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
     #pdf(fname,paper="USr",onefile=TRUE)
     mypdf(fname,res = 600, height = 9, width = 11, units = "in")
     par(mfrow=c(3,2))
   }
-  for(i in arena$Trackers){
-    tmp<-Arena.GetTracker(arena,i)
-    PlotX.Tracker(tmp,range)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    PlotY(t,range)
   }
   if(WriteToPDF==TRUE){
     #graphics.off()
@@ -249,33 +374,35 @@ multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL) {
 }
 
 SmoothTransitions.Arena<-function(arena,minRun=1){
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     t2<-SmoothTransitions(t)
-    arena[[tmp]]<-t2
+    nm<-paste("Tracker",tt$TrackingRegion,tt$ObjectID,sep="_")
+    arena[[nm]]<-t2
   }
   arena
 }
 
 AnalyzeTransitions.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE){
   result<-list()
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
-    result[[tmp]]<-AnalyzeTransitions(t,range,ShowPlot)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    result[[t$Name]]<-AnalyzeTransitions(t,range,ShowPlot)
   }
   result
 }
 
 PIPlots.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
-  fname<-paste("./",arena$Name,"/Arena_PIPlots.pdf",sep="")
+  fname<-paste("./",arena$DataDir,"/",arena$Name,"_PIPlots.pdf",sep="")
   if(WriteToPDF==TRUE) {
     ##mypdf(fname,paper="letter",onefile=TRUE)
     mypdf(fname,res = 600, height = 11, width = 9, units = "in")
   }
-  for(i in arena$Trackers){
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
     PIPlots(t,range)
   }
   if(WriteToPDF==TRUE){
@@ -288,7 +415,6 @@ PIPlots.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
 ## but render MUCH FASTER for pdf plots with  many points.
 ## See here for details.https://hopstat.wordpress.com/2014/04/
 ## They require ImageMagick installed: https://imagemagick.org/script/download.php#windows
-
 
 mypdf = function(pdfname, mypattern = "MYTEMPPNG", ...) {
   fname = paste0(mypattern, "%05d.png")
@@ -311,3 +437,63 @@ mydev.off = function(pdfname, mypattern="MYTEMPPNG", copts = "") {
   tmp<-(sprintf("magick convert %s -quality 100 %s %s", mystr, pdfname, copts))
   system(tmp)
 }
+
+Trim.Arena<-function(arena, matingtime_min, duration_min){
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    tmp2 <- GetFirstRegionDuration.Tracker(t, matingtime_min)
+    tmp2 <- tmp2[, 4]
+    tmp3<-tmp2+duration_min
+    print(tmp3)
+    t$RawData<-subset(t$RawData,t$RawData$Minutes>tmp2 & t$RawData$Minutes<=tmp3)
+    if(nrow(t$RawData)<1){
+      mess<-paste("**Warning! Tracker ",t$Name,"has no remaining data**\n")
+      cat(mess)
+    }
+    if("TwoChoiceTracker" %in% class(t)){
+      t$PIData<-subset(t$PIData,t$PIData$Minutes>tmp2 & t$PIData$Minutes<=tmp3)
+    }
+    nm<-paste("Tracker",t$ID$TrackingRegion,t$ID$ObjectID,sep="_")
+    print(nm)
+    arena[[nm]]<-t
+  }
+  arena
+}
+
+Arena.GetTracker<-function(arena,id){
+  if(length(id)<2){
+    tmp<-paste("Tracker_",id,sep="")  
+  }
+  else if(length(id)==2){
+    tmp<-paste("Tracker_",id$TrackingRegion,"_",id$ObjectID,sep="")
+  }
+  else{
+    tmp=""
+  }
+  arena[[tmp]]
+}
+
+
+ReportDuration.Arena<-function(arena){
+  result<-data.frame(matrix(c(0,"None",0,0),nrow=1))
+  names(result)<-c("ObjectID","TrackingROI","StartTime","Duration")  
+  index<-1
+  for(j in 1:nrow(arena$Trackers)){
+      tt<-arena$Trackers[j,]
+      t<-Arena.GetTracker(arena,tt)
+      tmp<-t$RawData
+      if(nrow(tmp)<2) {
+        start<-NA
+        duration<-NA
+      }
+      else {
+        start<-tmp$Minutes[1]
+        duration<-tmp$Minutes[length(tmp$Minutes)]-start
+      }
+      result[index,]<-c(arena$Trackers$ObjectID[j],arena$Trackers$TrackingRegion[j],start,duration)
+      index<-index+1
+    }  
+  result
+}
+
