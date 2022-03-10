@@ -14,7 +14,7 @@ TwoChoiceTracker.ProcessTwoChoiceTracker <- function(tracker) {
     stop("Experimental design file requires ObjectID, TrackingRegion, CountingRegion, and Treatments columns.")
   }
 
-  if(length(unique(tracker$ExpDesign$Treatment))!=2){    
+  if(length(unique(tracker$ExpDesign$Treatment))!=2){
     stop("Two choice tracker requires exactly two treatments.")
   }  
   tracker <- TwoChoiceTracker.SetPIData(tracker)
@@ -32,7 +32,7 @@ TwoChoiceTracker.SetPIData<-function(tracker){
     stop("Wrong number of treatments!") 
   }
 
-  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ObjectID == tracker$ID$ObjectID && tracker$ExpDesign$TrackingRegion == tracker$ID$TrackingRegion)      
+  tmp<-tracker$ExpDesign
   a<-rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[1]]
   b<-rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[2]]  
  
@@ -65,13 +65,12 @@ Summarize.TwoChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){
   }
 
   treatments<-c(treatments,"None")
-  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ObjectID == tracker$ID$ObjectID && tracker$ExpDesign$TrackingRegion == tracker$ID$TrackingRegion)      
+  tmp<-tracker$ExpDesign
   a<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[1]])
   b<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[2]])
   c<-sum(rd$CountingRegion==treatments[3])
   
   r.tmp<-matrix(c(a,b,c),nrow=1)
-  
   results<-data.frame(tracker$ID,total.min,total.dist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,avg.speed,range[1],range[2],r.tmp)
   names(results)<-c("ObjectID","TrackingRegion","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
   

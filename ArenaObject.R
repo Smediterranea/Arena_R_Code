@@ -55,7 +55,6 @@ ArenaClass<-function(parameters,dirname="Data"){
   
   arena <- list(Name = "Arena1", Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=dirname)
 
-
   if(nrow(trackers)>0){
     for(i in 1:nrow(trackers)){
       nm<-paste("Tracker",trackers[i,2],trackers[i,1],sep="_")
@@ -225,28 +224,28 @@ Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
       pdf(fname,paper="USr",onefile=TRUE)
       par(mfrow=c(3,2))
     }
-    tmp.result<-result[,c("ObjectID","TrackingROI","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result<-result[,c("ObjectID","TrackingRegion","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
     tmp.result[is.na(tmp.result)]<-0
     
-    tmp.result1<-melt(tmp.result,id.var=c("TrackingROI","ObjectID"))
-    tmp.result1<-data.frame(paste(tmp.result1$TrackingROI,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
-    names(tmp.result1)<-c("ID","TrackingROI","ObjectID","Type","value")
+    tmp.result1<-melt(tmp.result,id.var=c("TrackingRegion","ObjectID"))
+    tmp.result1<-data.frame(paste(tmp.result1$TrackingRegion,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
+    names(tmp.result1)<-c("ID","TrackingRegion","ObjectID","Type","value")
     
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
       geom_bar(stat = "identity")+ggtitle(paste("Arena"," -- Distribution")) +
       labs(x="Tracker ID",y="Fraction"))
     
     ## Now reflect total movement
-    tmp.result<-result[,c("ObjectID","TrackingROI","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
+    tmp.result<-result[,c("ObjectID","TrackingRegion","PercSleeping","PercWalking","PercMicroMoving","PercResting")]
     tmp.result[is.na(tmp.result)]<-0
     
     tmp.result[,"PercSleeping"]<-result[,"PercSleeping"]*result$TotalDist_mm
     tmp.result[,"PercWalking"]<-result[,"PercWalking"]*result$TotalDist_mm
     tmp.result[,"PercMicroMoving"]<-result[,"PercMicroMoving"]*result$TotalDist_mm
     tmp.result[,"PercResting"]<-result[,"PercResting"]*result$TotalDist_mm
-    tmp.result1<-melt(tmp.result,id.var=c("TrackingROI","ObjectID"))
-    tmp.result1<-data.frame(paste(tmp.result1$TrackingROI,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
-    names(tmp.result1)<-c("ID","TrackingROI","ObjectID","Type","value")
+    tmp.result1<-melt(tmp.result,id.var=c("TrackingRegion","ObjectID"))
+    tmp.result1<-data.frame(paste(tmp.result1$TrackingRegion,"_",tmp.result1$ObjectID,sep=""),tmp.result1)
+    names(tmp.result1)<-c("ID","TrackingRegion","ObjectID","Type","value")
     
     print(ggplot(tmp.result1, aes(x = ID, y = value, fill = Type))+ 
             geom_bar(stat = "identity")+ggtitle(paste("Arena",arena$Name," -- Total Movement")) +
@@ -445,7 +444,6 @@ Trim.Arena<-function(arena, matingtime_min, duration_min){
     tmp2 <- GetFirstRegionDuration.Tracker(t, matingtime_min)
     tmp2 <- tmp2[, 4]
     tmp3<-tmp2+duration_min
-    print(tmp3)
     t$RawData<-subset(t$RawData,t$RawData$Minutes>tmp2 & t$RawData$Minutes<=tmp3)
     if(nrow(t$RawData)<1){
       mess<-paste("**Warning! Tracker ",t$Name,"has no remaining data**\n")
@@ -455,7 +453,6 @@ Trim.Arena<-function(arena, matingtime_min, duration_min){
       t$PIData<-subset(t$PIData,t$PIData$Minutes>tmp2 & t$PIData$Minutes<=tmp3)
     }
     nm<-paste("Tracker",t$ID$TrackingRegion,t$ID$ObjectID,sep="_")
-    print(nm)
     arena[[nm]]<-t
   }
   arena
@@ -477,7 +474,7 @@ Arena.GetTracker<-function(arena,id){
 
 ReportDuration.Arena<-function(arena){
   result<-data.frame(matrix(c(0,"None",0,0),nrow=1))
-  names(result)<-c("ObjectID","TrackingROI","StartTime","Duration")  
+  names(result)<-c("ObjectID","TrackingRegion","StartTime","Duration")  
   index<-1
   for(j in 1:nrow(arena$Trackers)){
       tt<-arena$Trackers[j,]

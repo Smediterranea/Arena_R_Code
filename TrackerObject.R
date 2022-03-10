@@ -40,7 +40,7 @@ TrackerClass.RawDataFrame <-
     tmp$DataQuality <- factor(tmp$DataQuality)
     
     if (!is.null(expDesign)) {
-      expDesign = subset(expDesign, expDesign$ID == id)
+      expDesign<-subset(expDesign,expDesign$ObjectID == id$ObjectID & expDesign$TrackingRegion == id$TrackingRegion)      
     }
     name<-paste(id$TrackingRegion,"_",id$ObjectID,sep="")
     data = list(
@@ -53,7 +53,6 @@ TrackerClass.RawDataFrame <-
       ExpDesign = expDesign
     )
     class(data) = "Tracker"
-    
     if (parameters$TType == "TwoChoiceTracker") {
       data <- TwoChoiceTracker.ProcessTwoChoiceTracker(data)
     }
@@ -62,6 +61,9 @@ TrackerClass.RawDataFrame <-
     }
     else if (parameters$TType == "DDropTracker") {
       data <- DDropTracker.ProcessDDropTracker(data)
+    }
+    else{
+      data<-Tracker.ProcessGeneralTracker(data)
     }
     
     ## The class is done, now can add default operations to it
@@ -72,6 +74,11 @@ TrackerClass.RawDataFrame <-
     
     data
   }
+
+Tracker.ProcessGeneralTracker<-function(tracker){
+  class(tracker) <- c("Tracker", class(tracker))
+  tracker
+}
 
 Tracker.Calculate.MovementTypes <- function(tracker) {
   tnames <- c(names(tracker$RawData), "Walking", "MicroMoving", "Resting")
@@ -281,7 +288,7 @@ GetMeanXPositions.Tracker <- function(tracker, range = c(0, 0)) {
     data.frame(tracker$ID, Walking, MicroMoving, Resting, Sleeping, Total)
   names(tmp) <-
     c("ID",
-      "TrackingROI",
+      "TrackingRegion",
       "Walking",
       "MicroMoving",
       "Resting",
@@ -329,7 +336,7 @@ Summarize.Tracker <- function(tracker,
   names(results) <-
     c(
       "ObjectID",
-      "TrackingROI",
+      "TrackingRegion",
       "ObsMinutes",
       "TotalDist_mm",
       "PercSleeping",
@@ -621,7 +628,7 @@ GetQuartileXPositions.Tracker <-
       data.frame(tracker$ID, Walking, MicroMoving, Resting, Sleeping, Total)
     names(tmp) <-
       c("ID",
-        "TrackingROI",
+        "TrackingRegion",
         "Walking",
         "MicroMoving",
         "Resting",
@@ -633,7 +640,7 @@ GetQuartileXPositions.Tracker <-
 
 ReportDuration.Tracker<-function(tracker){
   result<-data.frame(matrix(c(0,"None",0,0),nrow=1))
-  names(result)<-c("ObjectID","TrackingROI","StartTime","Duration")  
+  names(result)<-c("ObjectID","TrackingRegion","StartTime","Duration")  
   index<-1
     t<-tracker
     tmp<-t$RawData
@@ -659,7 +666,6 @@ GetRuns.Tracker<-function(tracker){
   CumRunDurMin<-cumsum(RunDurationMin)
   CumRunDurMin<-c(0,CumRunDurMin)
   tmp<-data.frame(tmp,RunDurationMin,CumRunDurMin)
-  print(tmp)
   tmp
 }
 

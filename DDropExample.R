@@ -3,7 +3,7 @@
 ## simpler PDF outputs.
 ## Get it here: https://imagemagick.org/script/download.php#windows
 ## Also required are the following packages: ggplot2, markovchain, Gmisc, 
-##  data.table, reshape2, readxl, tibble, stringr, readr
+##  data.table, reshape2, readxl, tibble, stringr, readr, plyr, dplyr
 
 rm(list=ls())
 
@@ -30,6 +30,7 @@ write.table(results,"clipboard",sep="\t",row.names=FALSE)
 ## Isolate the data only after the flies are first seen above
 ## the basement mask.
 zeroed.results<-ZeroDDropResults(results)
+write.table(results,"clipboard",sep="\t",row.names=FALSE)
 
 ## Plots can be useful as well
 PlotY(ARENA1)

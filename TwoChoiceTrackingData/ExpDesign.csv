@@ -1,0 +1,13 @@
+TrackingRegion,ObjectID,CountingRegion,Treatment
+T1,0,L,Plus
+T1,0,R,Minus
+T2,0,L,Minus
+T2,0,R,Plus
+T3,0,L,Plus
+T3,0,R,Minus
+T4,0,L,Minus
+T4,0,R,Plus
+T5,0,L,Plus
+T5,0,R,Minus
+T6,0,L,Minus
+T6,0,R,Plus

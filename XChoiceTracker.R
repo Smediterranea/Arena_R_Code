@@ -1,21 +1,21 @@
 require(plyr)
 
-XChoiceTracker.ProcessXTracker<-function(tracker){
-  if(is.null(tracker$ExpDesign)){
-    stop("X choice tracker requires experimental design.")
-  }
-  
-  a<-"ObjectID" %in% colnames(tracker$ExpDesign)
-  b<-"TrackingRegion" %in% colnames(tracker$ExpDesign)   
-  c<-"CountingRegion" %in% colnames(tracker$ExpDesign)   
-  d<-"Treatment" %in% colnames(tracker$ExpDesign)   
-  e<-"PIMult" %in% colnames(tracker$ExpDesign)   
-  f<-c(a,b,c,d,e)
-  if(sum(f)<5){
-    stop("Experimental design file requires ObjectID,TrackingRegion, CountingRegion, PiMult, and Treatments columns.")
+XChoiceTracker.ProcessXTracker <- function(tracker) {
+  if (!is.null(tracker$ExpDesign)) {
+    a <- "ObjectID" %in% colnames(tracker$ExpDesign)
+    b <- "TrackingRegion" %in% colnames(tracker$ExpDesign)
+    c <- "CountingRegion" %in% colnames(tracker$ExpDesign)
+    d <- "Treatment" %in% colnames(tracker$ExpDesign)
+    e <- "PIMult" %in% colnames(tracker$ExpDesign)
+    f <- c(a, b, c, d, e)
+    if (sum(f) < 5) {
+      stop(
+        "Experimental design file requires ObjectID,TrackingRegion, CountingRegion, PiMult, and Treatments columns."
+      )
+    }
   }
   tracker <- XChoiceTracker.SetXData(tracker)
-  class(tracker)<-c("XChoiceTracker",class(tracker))
+  class(tracker) <- c("XChoiceTracker", class(tracker))
   tracker
 }
 
@@ -45,7 +45,7 @@ Summarize.XChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){
   }
 
   treatments<-c(treatments,"None")
-  tmp<-subset(tracker$ExpDesign,tracker$ExpDesign$ObjectID == tracker$ID$ObjectID && tracker$ExpDesign$TrackingRegion == tracker$ID$TrackingRegion)      
+  tmp<-tracker$ExpDesign
   a<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[1]])
   b<-sum(rd$CountingRegion==tmp$CountingRegion[tmp$Treatment==treatments[2]])
   c<-sum(rd$CountingRegion==treatments[3])
@@ -53,7 +53,7 @@ Summarize.XChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){
   r.tmp<-matrix(c(a,b,c),nrow=1)
   
   results<-data.frame(tracker$ID,total.min,total.dist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,avg.speed,range[1],range[2],r.tmp)
-  names(results)<-c( "ObjectID","TrackingROI","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
+  names(results)<-c( "ObjectID","TrackingRegion","ObsMinutes","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","AvgSpeed","StartMin","EndMin",treatments)
   
   if(ShowPlot){
     tmp<-data.frame(c(results$PercWalking,results$PercMicroMoving,results$PercResting,results$PercSleeping),rep("one",4), factor(c("Walking","MicroMoving","Resting","Sleeping")))
