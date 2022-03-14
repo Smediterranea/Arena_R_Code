@@ -669,8 +669,10 @@ GetRuns.Tracker<-function(tracker){
   names(tmp)<-c("RunDurationFrames","CountingRegion")
   RunDurationMin<-tmp$RunDurationFrames/tracker$Parameters$FPS/60
   CumRunDurMin<-cumsum(RunDurationMin)
-  CumRunDurMin<-c(0,CumRunDurMin)
-  tmp<-data.frame(tmp,RunDurationMin,CumRunDurMin)
+  StartTime<-c(0,CumRunDurMin)
+  StartTime<-StartTime[-(length(StartTime))]
+  EndTime<-CumRunDurMin
+  tmp<-data.frame(tmp,RunDurationMin,StartTime,EndTime)
   tmp
 }
 
