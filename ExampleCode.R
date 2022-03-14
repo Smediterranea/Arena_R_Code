@@ -28,7 +28,7 @@ p<-ParametersClass.TwoChoiceTracker()
 ## If your data were collected with a live (i.e., FLIR) camera,
 ## then FPS should remain NA because the interframe time is 
 ## saved in the output file by DTrack.
-p<-Parameters.SetParameter(p,FPS=10)
+p<-Parameters.SetParameter(p,FPS=2)
 
 ## Check out the parameters and ensure that they are appropriate.
 ## Notably, make sure the mmPerPixel value is correct for your setup.
@@ -43,7 +43,7 @@ p<-Parameters.SetParameter(p,FPS=10)
 ## a parameter to the ArenaClass function
 ## ArenaClass<-function(parameters,dirname="Data")
 
-arena<-ArenaClass(p,dirname="TrackingData")
+arena<-ArenaClass(p,dirname="Ch1")
 
 ## Basic movement information and region summaries can be obtained from
 Summarize(arena)
@@ -56,7 +56,7 @@ tracker<-Arena.GetTracker(arena,3)
 ## the arena or a specific tracker. If you pass an arena object
 ## the output is sent to a pdf file by default (can be changed)
 ## but if you send a tracker it is not.
-PlotX(arena)
+PlotXY(arena)
 PlotX(Arena.GetTracker(arena,1))
 PlotXY(Arena.GetTracker(arena,1))
 
@@ -80,5 +80,5 @@ PlotX.Tracker(Arena.GetTracker(arena,2),range=c(30,40))
 ## plots are not.
 PIPlots(arena)
 PIPlots(Arena.GetTracker(arena,4))
-TimeDependentPIPlots(Arena.GetTracker(arena,4))
+TimeDependentPIPlots(Arena.GetTracker(arena,"T0_1"))
 
