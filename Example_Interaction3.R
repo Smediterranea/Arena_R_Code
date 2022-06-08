@@ -6,7 +6,7 @@ source("InteractionCounter.R")
 ## This is meant to be used for analysis of movie files (not live recording)
 ## with FPS=10 frames per sec during recording. It also assumes six tracking regions T_0 ... T_5
 ##***********
-datadir<-"Data"
+datadir<-"Movie1Part1"
 distance.for.interaction.mm <-8
 binsize.in.min<-10
 ##***********
@@ -15,7 +15,8 @@ binsize.in.min<-10
 
 ##***********
 p<-ParametersClass.InteractionCounter()
-p<-Parameters.SetParameter(p,mmPerPixel=0.2156)
+#p<-Parameters.SetParameter(p,mmPerPixel=0.2156)
+p<-Parameters.SetParameter(p,mmPerPixel=0.132)
 p<-Parameters.SetParameter(p,FPS=10)
 ##***********
 
@@ -71,8 +72,33 @@ write.csv(
   row.names = FALSE
 )
 
+
+AllChamber.Frequencies<-rbind(interaction.results.t0$Frequencies,interaction.results.t1$Frequencies,
+                              interaction.results.t2$Frequencies,interaction.results.t3$Frequencies,
+                              interaction.results.t4$Frequencies,interaction.results.t5$Frequencies)
+
+tmp.0<-sum(interaction.results.t0$Results$IsInteracting)/length(interaction.results.t0$Results$IsInteracting)
+tmp.1<-sum(interaction.results.t1$Results$IsInteracting)/length(interaction.results.t1$Results$IsInteracting)
+tmp.2<-sum(interaction.results.t2$Results$IsInteracting)/length(interaction.results.t2$Results$IsInteracting)
+tmp.3<-sum(interaction.results.t3$Results$IsInteracting)/length(interaction.results.t3$Results$IsInteracting)
+tmp.4<-sum(interaction.results.t4$Results$IsInteracting)/length(interaction.results.t4$Results$IsInteracting)
+tmp.5<-sum(interaction.results.t5$Results$IsInteracting)/length(interaction.results.t5$Results$IsInteracting)
+
+Int.Frequency<-c(tmp.0,tmp.1,tmp.2,tmp.3,tmp.4,tmp.5)
+rm("tmp.0","tmp.1","tmp.2","tmp.3","tmp.4","tmp.5")
+Chamber<-c("T_0","T_1","T_2","T_3","T_4","T_5")
+AllChamber.Frequencies<-data.frame(Chamber,AllChamber.Frequencies,Int.Frequency)
+write.csv(
+  AllChamber.Frequencies,
+  file = paste(datadir, "/AllFrequencies.csv", sep = ""),
+  row.names = FALSE
+)
+
+
 file = paste(datadir, "/RESULTS", sep = "")
 save.image(file)
+
+
 
 
 
