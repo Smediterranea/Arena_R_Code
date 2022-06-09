@@ -15,8 +15,12 @@ binsize.in.min<-10
 
 ##***********
 p<-ParametersClass.InteractionCounter()
+## The next value is for the old CCD cameras
 #p<-Parameters.SetParameter(p,mmPerPixel=0.2156)
+## The next value is for the new CCD camera setup
 p<-Parameters.SetParameter(p,mmPerPixel=0.132)
+## The next value is roughly good for the Arenas
+##p<-Parameters.SetParameter(p,mmPerPixel=0.056)
 p<-Parameters.SetParameter(p,FPS=10)
 ##***********
 
