@@ -7,6 +7,7 @@ require(readxl)
 require(tibble)
 require(plyr)
 require(dplyr)
+require(ggplot2)
 
 
 ArenaClass<-function(parameters,dirname="Data"){
@@ -33,6 +34,7 @@ ArenaCounterClass<-function(parameters,dirname="Data"){
   }
   
   files<-paste(datadir,files,sep="")
+  
   theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}))
   
   ## Try to correct previous version files.
@@ -358,7 +360,7 @@ Summarize.ArenaTracker<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TR
   result
 }
 
-PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
+PlotXY.ArenaTracker<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   fname<-paste("./",arena$DataDir,"/",arena$Name,"_XYPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
@@ -377,7 +379,7 @@ PlotXY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   }
 }
 
-PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
+PlotX.ArenaTracker<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   fname<-paste("./",arena$DataDir,"/",arena$Name,"_XPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {
@@ -396,7 +398,7 @@ PlotX.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   }
 }
 
-PlotY.Arena<-function(arena,range=c(0,0),WriteToPDF=TRUE){
+PlotY.ArenaTracker<-function(arena,range=c(0,0),WriteToPDF=TRUE){
   fname<-paste("./",arena$DataDir,"/",arena$Name,"_YPlots.pdf",sep="")
   tmp.list<-list()
   if(WriteToPDF==TRUE) {

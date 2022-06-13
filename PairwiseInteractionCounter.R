@@ -22,10 +22,12 @@ PairwiseInteractionCounter.ProcessPairwiseInteractionCounter<-function(counter){
   counter
 }
 
-
-## Public Functions ##
-PairwiseInteractionCounter.SetInteractionData<-function(counter) {
-  theData<-counter$RawData
+PairwiseInteractionCounter.GetFrameCounts<-function(counter, range=c(0,0)) {
+  library(dplyr, warn.conflicts = FALSE)
+  
+  # Suppress summarise info
+  options(dplyr.summarise.inform = FALSE)
+  theData<-InteractionCounter.GetRawData(counter,range)
   p<-counter$Parameters
   counts <-
     theData %>% group_by(Frame) %>% summarise(Objects = sum(NObjects))
@@ -39,7 +41,15 @@ PairwiseInteractionCounter.SetInteractionData<-function(counter) {
   
   frequencies <- c(missings, ones, twos, more)
   names(frequencies) <- c("Zero", "One", "Two", "More")
-  
+  frequencies
+}
+
+
+## Public Functions ##
+PairwiseInteractionCounter.SetInteractionData<-function(counter) {
+  theData<-counter$RawData
+  p<-counter$Parameters
+  frequencies<-PairwiseInteractionCounter.GetFrameCounts(counter)
   frameIndex <- subset(counts, Objects == 2)$Frame
   distances <- rep(NA, length(frameIndex))
   ElapsedTimeMin<-distances
@@ -60,7 +70,7 @@ PairwiseInteractionCounter.SetInteractionData<-function(counter) {
       stop("Oops1")
       
     }
-    results$ElapsedTimeMin[i]=tmp$Minutes
+    results$ElapsedTimeMin[i]=tmp$Minutes[1]
     if(i==1){
       results$DiffTimeMin[i]=results$ElapsedTimeMin[i]
     }
@@ -101,22 +111,21 @@ InteractionCounter.GetRawData <- function(counter, range = c(0, 0)) {
 InteractionCounter.GetInteractionData <- function(counter, range = c(0, 0)) {
   rd <- counter$InteractionData$Results
   if (sum(range) != 0) {
-    rd <- rd[(rd$Minutes > range[1]) & (rd$Minutes < range[2]), ]
+    rd <- rd[(rd$ElapsedTimeMin > range[1]) & (rd$ElapsedTimeMin < range[2]), ]
   }
   rd
 }
 
 Summarize.PairwiseInteractionCounter<-function(counter,range=c(0,0),ShowPlot=TRUE){
   rd<-InteractionCounter.GetInteractionData(counter,range) 
+  ff<-PairwiseInteractionCounter.GetFrameCounts(counter,range)
   
-  interacting<-rd[counter$InteractionData$Results$IsInteracting==TRUE,]
+  interacting<-rd[rd$IsInteracting==TRUE,]
   notinteracting<-rd[rd$IsInteracting==FALSE,]
   total.time<-sum(rd$DiffTimeMin) 
   time.interacting<-sum(interacting$DiffTimeMin)
   time.notinteracting<-sum(notinteracting$DiffTimeMin) 
   
-  ff<-c(counter$InteractionData$Frequencies)
-  print(ff)
   results<-data.frame(counter$ID,total.time,time.interacting,time.notinteracting,time.interacting/total.time,ff[1],ff[2],ff[3],ff[4],ff[3]/(sum(ff)),
                       range[1],range[2])
   names(results)<-c("TrackingRegion","ObsMinutes","MinutesInteracting","MinutesNotInteracting","PercentInteraction","Zero","One","Two","More","PercTwo","StartMin","EndMin")
@@ -124,11 +133,19 @@ Summarize.PairwiseInteractionCounter<-function(counter,range=c(0,0),ShowPlot=TRU
   results
 }
 
-PlotXY.PairwiseInteractionCounter<-function(counter,range = c(0, 0)){
-  print("HI there!!")
+PlotX.PairwiseInteractionCounter<-function(counter,range = c(0, 0)){
+  id<-counter$InteractionData$Results
+  x <- ggplot(id, aes(Frame, Distance_mm, color = IsInteracting)) +
+    geom_point() +
+    ggtitle(paste("Counter:", counter$Name, sep =
+                    "")) +
+    xlab("Frame") + ylab("Distance (mm)")
+  print(x)
   
 }
 
+###################################
+## Still need to be incorporated
 
 GetBinnedInteractionTime <- function(results, binsize.min = 10) {
   et <- as.numeric(results$Results$ElapsedTimeMin)
@@ -177,4 +194,21 @@ UpdateDistanceCutoff <- function(results, newcutoff.mm) {
   results$Results$IsInteracting <-
     results$Results$Distance_mm <= newcutoff.mm
   results
+}
+
+## Functions that just catch misapplied higher functions
+FinalPI.PairwiseInteractionCounter<-function(tracker){
+  cat("This function not available for this type of tracker")
+}
+CumulativePI.PairwiseInteractionCounter<-function(tracker){
+  cat("This function not available for this type of tracker")
+}
+GetPIData.PairwiseInteractionCounter<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
+PIPlots.PairwiseInteractionCounter<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
+TimeDependentPIPlots.PairwiseInteractionCounter<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
 }

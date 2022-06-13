@@ -24,7 +24,14 @@ p<-Parameters.SetParameter(p,mmPerPixel=0.132)
 dirname<-"InteractionData"
 arena<-ArenaClass(p,dirname)
 
+summary<-Summarize(arena)
+PlotX(arena)
 
+write.csv(
+  summary,
+  file = paste(dirname, "/DataSummary.csv", sep = ""),
+  row.names = FALSE
+)
 
 
 require(ggplot2)
