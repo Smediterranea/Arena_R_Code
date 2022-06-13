@@ -69,17 +69,29 @@ ParametersClass.XChoiceTracker=function(){
   p
 }
 
-ParametersClass.InteractionCounter=function(){
-  p<-ParametersClass()
-  p<-Parameters.SetParameter(p,TType="InteractionCounter")
-  p
-}
-
 ParametersClass.TwoChoiceTracker=function(){
   p<-ParametersClass()
   p<-Parameters.SetParameter(p,TType="TwoChoiceTracker")
   p
 }
+
+ParametersClass.PairwiseInteractionCounter=function(Interaction.Dist.mm=8){
+  Filter.Sleep=FALSE
+  Filter.Tracker.Error=0
+  Sleep.Threshold.Distance.mm=1
+  Sleep.Threshold.Min=5
+  mmPerPixel=0.056
+  MicroMove.mm.sec<-c(0.2,2.0)
+  Walking.mm.sec<-2.0
+  Smooth.Speed.Data<-TRUE
+  FPS=NA
+  TType="PairwiseInteractionCounter"
+  tmp<-list(mmPerPixel=mmPerPixel,FPS=FPS, Smooth.Speed.Data=Smooth.Speed.Data,Filter.Sleep=Filter.Sleep,Filter.Tracker.Error=Filter.Tracker.Error,Sleep.Threshold.Min=Sleep.Threshold.Min,
+            Sleep.Threshold.Distance.mm=Sleep.Threshold.Distance.mm,MicroMove.mm.sec=MicroMove.mm.sec,Walking.mm.sec=Walking.mm.sec,Interaction.Distance.mm=Interaction.Dist.mm,TType=TType)
+  class(tmp)="ParametersObject"
+  tmp
+}
+
 
 ParametersClass.DDrop=function(){
   p<-ParametersClass()

@@ -12,7 +12,7 @@ binsize.in.min<-10
 FPS=10
 
 ## The next value is for the old CCD cameras
-mm.per.pixel<-0.2156
+#mm.per.pixel<-0.2156
 ## The next value is for the new CCD camera setup
 #mm.per.pixel<-0.132
 ## The next value is roughly good for the Arenas

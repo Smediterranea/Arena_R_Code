@@ -1,4 +1,5 @@
 source("TrackerObject.R")
+source("CounterObject.R")
 source("GeneralUtility.R")
 require(data.table)
 require(reshape2)
@@ -8,8 +9,91 @@ require(plyr)
 require(dplyr)
 
 
-## Public Functions ##
 ArenaClass<-function(parameters,dirname="Data"){
+ if(grepl(".*Counter",parameters$TType)==TRUE){
+   arena<-ArenaCounterClass(parameters,dirname)
+ } 
+  else if(grepl(".*Tracker",parameters$TType)==TRUE){
+    arena<-ArenaTrackerClass(parameters,dirname)
+  }
+  else {
+    stop("Parameters don't indicate tracker or counter!")
+  }
+  arena
+}
+
+
+## Public Functions ##
+ArenaCounterClass<-function(parameters,dirname="Data"){
+  datadir<-paste("./",dirname,"/",sep="")
+  files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")    
+  if(length(files)<1) {
+    cat("No tracking files found.")
+    flush.console()      
+  }
+  
+  files<-paste(datadir,files,sep="")
+  theData<-rbindlist(lapply(files, function(x){read.csv(x, header=TRUE)}))
+  
+  ## Try to correct previous version files.
+  if(!("TrackingRegion" %in% names(theData))){
+    names(theData)[names(theData) == "Region"] <- "CountingRegion"
+    names(theData)[names(theData) == "Name"] <- "TrackingRegion"
+  }
+  
+  tmp<-unique(theData[,c("TrackingRegion")])
+  
+  cf<-tmp$TrackingRegion
+  
+  trackers<-data.frame(str_sort(cf,numeric=TRUE))
+  
+  names(trackers)<-c("TrackingRegion")
+  #trackers<-tmp %>% slice(match(tmp2,TrackingRegion))
+  
+  ## Get the tracking ROI and the Counting ROI
+  ## This reg expression tries to avoid temporary files that begin with '~'
+  file <- list.files(datadir, pattern = "^[^~].*xlsx")
+  if(length(file)>1)
+    stop("Only allowed one experiment file in the directory")
+  if(length(file)<1)
+    stop("Original experiment file is missing")
+  file<-paste(datadir,file,sep="")
+  roi <- read_excel(file, sheet = "ROI")
+  roi<-subset(roi,roi$Name!="AutoGenerateAntiMask")
+  
+  ## Look for experimental design file
+  files <- list.files(path = datadir, pattern = "ExpDesign.csv") 
+  if (length(files) < 1) {
+    expDesign <- NULL
+  }
+  else {
+    files <- paste(datadir, files, sep = "")    
+    expDesign <- read.csv(files[1])    
+  }
+  
+
+  arena <- list(Name = "ArenaCounter1", Trackers = trackers, ROI = roi, ExpDesign=expDesign, DataDir=dirname, FileName=dirname)
+  if(nrow(trackers)>0){
+    for(i in 1:nrow(trackers)){
+      nm<-paste("Tracker",trackers[i,1],sep="_")
+      roinm<-trackers[i,1]
+      theROI<-c(roi$Width[roi$Name==roinm],roi$Height[roi$Name==roinm])
+      theCountingROI<-roi$Name[roi$Type=="Counting"]
+      if(length(theCountingROI)<1)
+        theCountingROI<-"None"
+      tmp<-CounterClass.RawDataFrame(trackers[i,1],parameters,theData,theROI,theCountingROI,expDesign)
+      arena<-c(arena,setNames(list(nm=tmp),nm))
+    }
+  }
+  class(arena)=c("ArenaCounter","Arena")
+  
+  assign("ARENACOUNTER1",arena,pos=1)  
+  print(paste("ARENACOUNTER1 object saved."))
+  arena
+}
+
+
+ArenaTrackerClass<-function(parameters,dirname="Data"){
   datadir<-paste("./",dirname,"/",sep="")
   files <- list.files(path=datadir,pattern = "*Data_[0-9]*.csv")    
   if(length(files)<1) {
@@ -67,7 +151,7 @@ ArenaClass<-function(parameters,dirname="Data"){
       arena<-c(arena,setNames(list(nm=tmp),nm))
     }
   }
-  class(arena)="Arena"
+  class(arena)=c("ArenaTracker","Arena")
   
   assign("ARENA1",arena,pos=1)  
   print(paste("ARENA1 object saved."))
@@ -207,7 +291,23 @@ GetQuartileXPositions.Arena<-function(arena,quartile=1,range=c(0,0)){
   result
 }
 
-Summarize.Arena<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
+
+Summarize.ArenaCounter<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
+  for(i in 1:nrow(arena$Trackers)){
+    tt<-arena$Trackers[i,]
+    t<-Arena.GetTracker(arena,tt)
+    tmps<-Summarize(t,range,FALSE)
+    if(exists("result",inherits = FALSE)==TRUE){
+      result<-rbind(result,tmps)       
+    }
+    else {
+      result<-tmps     
+    }
+  }
+  result
+}
+
+Summarize.ArenaTracker<-function(arena,range=c(0,0),ShowPlot=TRUE, WriteToPDF=TRUE){
   for(i in 1:nrow(arena$Trackers)){
     tt<-arena$Trackers[i,]
     t<-Arena.GetTracker(arena,tt)

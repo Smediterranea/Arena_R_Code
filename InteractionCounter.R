@@ -1,3 +1,6 @@
+source("GeneralUtility.R")
+
+
 require(data.table)
 require(reshape2)
 require(readxl)
@@ -7,6 +10,7 @@ require(dplyr)
 require(tidyr)
 
 
+## Public Functions ##
 GetInteractionResults <- function(ic, p, interaction.cutoff.mm = 8) {
   counts <-
     ic %>% group_by(Frame) %>% summarise(Objects = sum(NObjects))
