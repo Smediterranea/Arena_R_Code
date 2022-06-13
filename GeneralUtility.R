@@ -26,6 +26,7 @@ GetCountingRegions<-function(data){
 
 
 ## Type specific functions
+Plot<-function(tracker, ...) UseMethod("Plot",tracker)
 Summarize<-function(tracker, ...) UseMethod("Summarize",tracker)
 FinalPI<-function(tracker, ...) UseMethod("FinalPI",tracker)
 CumulativePI<-function(tracker, ...) UseMethod("CumulativePI",tracker)

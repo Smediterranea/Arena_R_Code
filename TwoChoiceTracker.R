@@ -118,6 +118,10 @@ CumulativePI.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   result
 }
 
+Plot.TwoChoiceTracker<-function(tracker,range=c(0,0)){
+  PIPlots.TwoChoiceTracker(tracker,range)
+}
+
 PIPlots.TwoChoiceTracker<-function(tracker,range=c(0,0)){
   pd<-CumulativePI(tracker,range)
   nms<-names(pd)

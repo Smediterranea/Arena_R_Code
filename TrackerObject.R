@@ -377,6 +377,13 @@ Summarize.Tracker <- function(tracker,
   results
 }
 
+Plot.Tracker<-function(tracker,
+                     range = c(0, 0),
+                     ShowQuality = FALSE,
+                     PointSize = 0.75){
+  PlotXY.Tracker(tracker,range,ShowQualilty,PointSize)
+}
+
 PlotXY.Tracker <-
   function(tracker,
            range = c(0, 0),

@@ -29,7 +29,7 @@ data.summary<-Summarize(arena)
 ## pass a range (in minutes)
 Summarize(arena,range=c(0,10))
 
-PlotX(arena, range=c(0,10))
+Plot(arena, range=c(0,10))
 
 ## You can write the data to a file
 write.csv(

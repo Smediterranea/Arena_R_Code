@@ -50,6 +50,8 @@ PairwiseInteractionCounter.SetInteractionData<-function(counter) {
   theData<-counter$RawData
   p<-counter$Parameters
   frequencies<-PairwiseInteractionCounter.GetFrameCounts(counter)
+  counts <-
+    theData %>% group_by(Frame) %>% summarise(Objects = sum(NObjects))
   frameIndex <- subset(counts, Objects == 2)$Frame
   distances <- rep(NA, length(frameIndex))
   ElapsedTimeMin<-distances
@@ -58,7 +60,10 @@ PairwiseInteractionCounter.SetInteractionData<-function(counter) {
   
   results <- data.frame(frameIndex, distances,distances,ElapsedTimeMin,DiffTimeMin,IsInteracting)
   names(results) <- c("Frame", "Distance","Distance_mm","ElapsedTimeMin","DiffTimeMin","IsInteracting")
-  
+  print(" ")
+  print(paste("Tracking region:",counter$Name))
+  print(paste(length(results$Distance),"two blob frames found."))
+  print(" ")
   for (i in 1:length(results$Distance)) {
     if (i %% 2000 == 0)
       print(paste("Rep", i, "of", length(results$Distance)))
@@ -133,7 +138,7 @@ Summarize.PairwiseInteractionCounter<-function(counter,range=c(0,0),ShowPlot=TRU
   results
 }
 
-PlotX.PairwiseInteractionCounter<-function(counter,range = c(0, 0)){
+Plot.PairwiseInteractionCounter<-function(counter,range = c(0, 0)){
   id<-counter$InteractionData$Results
   x <- ggplot(id, aes(Frame, Distance_mm, color = IsInteracting)) +
     geom_point() +

@@ -63,6 +63,11 @@ Summarize.XChoiceTracker<-function(tracker,range=c(0,0),ShowPlot=TRUE){
   
   results
 }
+
+Plot.XChoiceTracker<-function(tracker,range = c(0,0)){  
+ PlotX.XChoiceTracker(tracker,range) 
+}
+
 PlotX.XChoiceTracker<-function(tracker,range = c(0,0)){  
   rd<-Tracker.GetRawData(tracker,range)
   tmp2<-rep("Moving",length(rd$X))

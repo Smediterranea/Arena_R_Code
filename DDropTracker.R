@@ -181,7 +181,9 @@ ZeroDDropResults<-function(results){
   new.results
 }
 
-
+Plot.DDropTracker<-function(tracker,range=c(0,0)){
+  PlotY(tracker,range)
+}
 
 Plot.All.DDropArenas<-function(){
   objects<-ls(pos=1)
