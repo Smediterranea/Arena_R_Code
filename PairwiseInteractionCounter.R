@@ -144,6 +144,7 @@ Plot.PairwiseInteractionCounter<-function(counter,range = c(0, 0)){
     geom_point() +
     ggtitle(paste("Counter:", counter$Name, sep =
                     "")) +
+    geom_smooth(method="auto", se=TRUE, fullrange=FALSE, level=0.95) +
     xlab("Frame") + ylab("Distance (mm)")
   print(x)
   

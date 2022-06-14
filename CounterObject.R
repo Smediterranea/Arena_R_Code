@@ -1,5 +1,6 @@
 source("ParametersClass.R")
 source("PairwiseInteractionCounter.R")
+source("SocialDistanceCounter.R")
 
 CounterClass.RawDataFrame <-
   function(id,
@@ -47,8 +48,8 @@ CounterClass.RawDataFrame <-
     if (parameters$TType == "PairwiseInteractionCounter") {
       data <- PairwiseInteractionCounter.ProcessPairwiseInteractionCounter(data)
     }
-    else if (parameters$TType == "XChoiceTracker") {
-      data <- XChoiceTracker.ProcessXTracker(data)
+    else if (parameters$TType == "SocialDistanceCounter") {
+      data <- SocialDistanceCounter.ProcessSocialDistanceCounter(data)
     }
     else if (parameters$TType == "DDropTracker") {
       data <- DDropTracker.ProcessDDropTracker(data)
