@@ -25,7 +25,7 @@ p<-Parameters.SetParameter(p,FPS=NA)
 # mm.per.pixel<-0.0.056
 p<-Parameters.SetParameter(p,mmPerPixel=0.132)
 
-dirname<-"Film2_1"
+dirname<-"InteractionData"
 arena<-ArenaClass(p,dirname)
 
 ###################################

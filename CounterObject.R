@@ -51,18 +51,9 @@ CounterClass.RawDataFrame <-
     else if (parameters$TType == "SocialDistanceCounter") {
       data <- SocialDistanceCounter.ProcessSocialDistanceCounter(data)
     }
-    else if (parameters$TType == "DDropTracker") {
-      data <- DDropTracker.ProcessDDropTracker(data)
-    }
     else{
-      ##data<-Tracker.ProcessGeneralCounter(data)
+      stop("Improper tracker type!")
     }
-    
-    ## The class is done, now can add default operations to it
-    ## before returning.
-    #data <- Tracker.Calculate.SpeedsAndFeeds(data)
-    #data <- Tracker.Calculate.MovementTypes(data)
-    #data <- Tracker.Calculate.Sleep(data)
     
     data
   }

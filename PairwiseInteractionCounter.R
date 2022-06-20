@@ -55,11 +55,10 @@ PairwiseInteractionCounter.SetInteractionData<-function(counter) {
   frameIndex <- subset(counts, Objects == 2)$Frame
   distances <- rep(NA, length(frameIndex))
   ElapsedTimeMin<-distances
-  DiffTimeMin<-distances
-  IsInteracting<-rep(FALSE,length(DiffTimeMin))
+  IsInteracting<-rep(FALSE,length(ElapsedTimeMin))
   
-  results <- data.frame(frameIndex, distances,distances,ElapsedTimeMin,DiffTimeMin,IsInteracting)
-  names(results) <- c("Frame", "Distance","Distance_mm","ElapsedTimeMin","DiffTimeMin","IsInteracting")
+  results <- data.frame(frameIndex, distances,distances,ElapsedTimeMin,IsInteracting)
+  names(results) <- c("Frame", "Distance","Distance_mm","ElapsedTimeMin","IsInteracting")
   print(" ")
   print(paste("Tracking region:",counter$Name))
   print(paste(length(results$Distance),"two blob frames found."))
@@ -76,12 +75,6 @@ PairwiseInteractionCounter.SetInteractionData<-function(counter) {
       
     }
     results$ElapsedTimeMin[i]=tmp$Minutes[1]
-    if(i==1){
-      results$DiffTimeMin[i]=results$ElapsedTimeMin[i]
-    }
-    else {
-      results$DiffTimeMin[i]=results$ElapsedTimeMin[i]-results$ElapsedTimeMin[i-1]
-    }
     x <- tmp$RelX
     y <- tmp$RelY
     if (length(x) == 2) {
@@ -127,13 +120,10 @@ Summarize.PairwiseInteractionCounter<-function(counter,range=c(0,0),ShowPlot=TRU
   
   interacting<-rd[rd$IsInteracting==TRUE,]
   notinteracting<-rd[rd$IsInteracting==FALSE,]
-  total.time<-sum(rd$DiffTimeMin) 
-  time.interacting<-sum(interacting$DiffTimeMin)
-  time.notinteracting<-sum(notinteracting$DiffTimeMin) 
   
-  results<-data.frame(counter$ID,total.time,time.interacting,time.notinteracting,time.interacting/total.time,ff[1],ff[2],ff[3],ff[4],ff[3]/(sum(ff)),
+  results<-data.frame(counter$ID,sum(rd$IsInteracting),sum(rd$IsInteracting==FALSE),sum(rd$IsInteracting)/length(rd$IsInteracting),ff[1],ff[2],ff[3],ff[4],ff[3]/(sum(ff)),
                       range[1],range[2])
-  names(results)<-c("TrackingRegion","ObsMinutes","MinutesInteracting","MinutesNotInteracting","PercentInteraction","Zero","One","Two","More","PercTwo","StartMin","EndMin")
+  names(results)<-c("TrackingRegion","FramesInteracting","FramesNotInteracting","PercentInteraction","Zero","One","Two","More","PercTwo","StartMin","EndMin")
   rownames(results)<-1:nrow(results)
   results
 }
