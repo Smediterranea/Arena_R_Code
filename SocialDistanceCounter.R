@@ -78,11 +78,17 @@ SocialDistanceCounter.SetSocialDistanceData<-function(counter) {
   p<-counter$Parameters
   frequencies<-SocialDistanceCounter.GetFrameCounts(counter)
   
+  percIdentified<-frequencies[2]/(frequencies[2]+frequencies[3])
+  if(percIdentified < .20){
+    theData$NObjects[theData$NObjects==0]<-1
+    print("Data Corrected!!!!!")
+  }
+  
   ## Isolate only those frames with the correct number of objects
   counts <-
     theData %>% group_by(Frame) %>% summarise(Objects = sum(NObjects))
-  frameIndex <- subset(counts, Objects == p$Interacting.Entities)$Frame
   
+  frameIndex <- subset(counts, Objects == p$Interacting.Entities)$Frame
   if(!("ClosestNeighbor" %in% names(theData))){
     counter$RawData<-SocialDistanceCounter.CalculateClosestNeighbor(counter)
     theData<-counter$RawData
