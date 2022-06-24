@@ -121,9 +121,9 @@ Summarize.PairwiseInteractionCounter<-function(counter,range=c(0,0),ShowPlot=TRU
   interacting<-rd[rd$IsInteracting==TRUE,]
   notinteracting<-rd[rd$IsInteracting==FALSE,]
   
-  results<-data.frame(counter$ID,sum(rd$IsInteracting),sum(rd$IsInteracting==FALSE),sum(rd$IsInteracting)/length(rd$IsInteracting),ff[1],ff[2],ff[3],ff[4],ff[3]/(sum(ff)),
+  results<-data.frame(counter$ID,counter$Parameters$Interaction.Distance.mm,sum(rd$IsInteracting),sum(rd$IsInteracting==FALSE),sum(rd$IsInteracting)/length(rd$IsInteracting),ff[1],ff[2],ff[3],ff[4],ff[3]/(sum(ff)),
                       range[1],range[2])
-  names(results)<-c("TrackingRegion","FramesInteracting","FramesNotInteracting","PercentInteraction","Zero","One","Two","More","PercTwo","StartMin","EndMin")
+  names(results)<-c("TrackingRegion","IDistance","FramesInteracting","FramesNotInteracting","PercentInteraction","Zero","One","Two","More","PercTwo","StartMin","EndMin")
   rownames(results)<-1:nrow(results)
   results
 }
@@ -186,10 +186,22 @@ GetBinnedInteractionTime <- function(results, binsize.min = 10) {
   result
 }
 
-UpdateDistanceCutoff <- function(results, newcutoff.mm) {
-  results$Results$IsInteracting <-
-    results$Results$Distance_mm <= newcutoff.mm
-  results
+
+UpdateDistanceCutoff.Arena<-function(arena,newcutoff.mm){
+  for(i in 1:nrow(arena$Trackers)){
+    t<-Arena.GetTracker(arena,arena$Trackers[i,1])
+    t<-UpdateDistanceCutoff.PairwiseInteractionCounter(t,newcutoff.mm)
+    nm<-paste("Tracker",t$Name,sep="_")
+    arena[[nm]]<-t
+  }
+  arena
+}
+
+UpdateDistanceCutoff.PairwiseInteractionCounter <- function(tracker, newcutoff.mm) {
+  tracker$Parameters$Interaction.Distance.mm<-newcutoff.mm
+  tracker$InteractionData$Results$IsInteracting <-
+    tracker$InteractionData$Results$Distance_mm <= newcutoff.mm
+  tracker
 }
 
 ## Functions that just catch misapplied higher functions

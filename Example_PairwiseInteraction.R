@@ -12,8 +12,8 @@ CleanTrackers()
 ## First make a parameter class
 ## You can define a generic tracker
 ## You must exactly two counting regions in the experiment (not including "None")
-Interaction.Distance.mm<-8
-p<-ParametersClass.PairwiseInteractionCounter(Interaction.Distance.mm)
+Interaction.Distance.mm<-c(2,4,6,8,10,12)
+p<-ParametersClass.PairwiseInteractionCounter(Interaction.Distance.mm[1])
 ## saved in the output file by DTrack.
 p<-Parameters.SetParameter(p,FPS=NA)
 
@@ -35,6 +35,15 @@ arena<-ArenaClass(p,dirname)
 ## folder (now with results)
 ## back to its original location
 data.summary<-Summarize(arena)
+
+if(length(Interaction.Distance.mm)>1){
+  for(i in 2:length(Interaction.Distance.mm)){
+    arena<-UpdateDistanceCutoff.Arena(arena,Interaction.Distance.mm[i])  
+    tmp<-Summarize(arena)
+    data.summary<-rbind(data.summary,tmp)
+  }
+}
+
 ## If you want to look at data for only a subset of the experiment, you can
 ## pass a range (in minutes)
 ##Summarize(arena,range=c(0,10))
