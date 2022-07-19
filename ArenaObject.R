@@ -234,7 +234,7 @@ Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
     }
   }
   
-  class(DDrop)="Arena"
+  class(DDrop)=c("ArenaTracker","Arena")
   st<-paste("ARENA",runNumber,sep="")
   assign(st,DDrop,pos=1)  
   print(paste("DDrop run",filename,"saved as",st))

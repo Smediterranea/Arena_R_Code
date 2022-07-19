@@ -32,7 +32,11 @@ write.csv(results$PerFly,file=outputfile,row.names=FALSE)
 
 ## Or write to clipboard to paste into excel
 ## But this will CBind the two components of the list.
-write.table(results,"clipboard",sep="\t",row.names=FALSE)
+write.table(results$PerRun,"clipboard",sep="\t",row.names=FALSE)
+
+## or
+
+write.table(results$PerFly,"clipboard",sep="\t",row.names=FALSE)
 
 ## Isolate the data only after the flies are first seen above
 ## the basement mask.

@@ -152,6 +152,7 @@ Summarize.All.DDropArenas<-function(){
   arenas<-objects[grep("ARENA*",objects)]
   if(length(arenas)>0){
   for(i in arenas){
+    print(i)
     tmp<-get(i)
     tmp.result<-Summarize(tmp,ShowPlot=FALSE)
     Arena<-rep(tmp$Name)
@@ -167,7 +168,12 @@ Summarize.All.DDropArenas<-function(){
   else {
     result<-NA
   }
-  results2<-GetAveragedPerFlyResults(result)
+  if("Fly" %in% colnames(result)){
+    results2<-GetAveragedPerFlyResults(result)
+  }
+  else {
+    results2<-NULL
+  }
   result<-list(PerRun=result,PerFly=results2)
   result
 }
@@ -176,7 +182,12 @@ ZeroDDropResults<-function(results){
   new.results<-results$PerRun
   colsToZero<-c("SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90")
   new.results[,colsToZero]<-new.results[,colsToZero] - new.results[,"SecFirstSeen"]
-  results2<-GetAveragedPerFlyResults(new.results)
+  if("Fly" %in% colnames(results)){
+    results2<-GetAveragedPerFlyResults(results)
+  }
+  else {
+    results2<-NULL
+  }
   new.results<-list(PerRun=new.results,PerFly=results2)
   new.results
 }
