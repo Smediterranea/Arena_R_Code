@@ -45,8 +45,47 @@ PairwiseInteractionCounter.GetFrameCounts<-function(counter, range=c(0,0)) {
 }
 
 
-## Public Functions ##
 PairwiseInteractionCounter.SetInteractionData<-function(counter) {
+  SubFunction<-function(a){
+    result<-NA
+    if(sum(a$NObjects)==2){
+      if(length(a$RelX)==1){
+        result<-0
+      }
+      else {
+        diffx <- diff(a$RelX)
+        diffy <- diff(a$RelY)
+        d <- sqrt(diffx * diffx + diffy * diffy)
+        result<-d
+      }
+    }
+    result
+  }
+  theData<-counter$RawData
+  p<-counter$Parameters
+  frequencies<-PairwiseInteractionCounter.GetFrameCounts(counter)
+  
+  tmp<-theData %>% group_by(Frame) %>% mutate(Dist=SubFunction(cur_data())) %>% summarise(Dist = mean(Dist))
+  results<-tmp[!is.na(tmp$Dist),]
+  
+  
+  Distance_mm<-results$Dist*p$mmPerPixel
+  
+  IsInteracting<-Distance_mm<=p$Interaction.Distance.mm
+  
+  results <- data.frame(results,Distance_mm,IsInteracting)
+  names(results) <- c("Frame", "Distance","Distance_mm","IsInteracting")
+  print(" ")
+  print(paste("Tracking region:",counter$Name))
+  print(paste(length(results$Distance),"two blob frames found."))
+  print(" ")
+  
+  counter$InteractionData<-list(Frequencies = frequencies, Results = results)
+  counter
+}
+
+## Public Functions ##
+PairwiseInteractionCounterOldAndSlow.SetInteractionData<-function(counter) {
   theData<-counter$RawData
   p<-counter$Parameters
   frequencies<-PairwiseInteractionCounter.GetFrameCounts(counter)
