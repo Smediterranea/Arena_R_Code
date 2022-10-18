@@ -50,7 +50,7 @@ CleanTrackers()
 ## You can define a generic tracker
 p <- ParametersClass()
 ## If you tracked a movie, set the original movie recording FPS.
-p <- Parameters.SetParameter(p, FPS = 10)
+p <- Parameters.SetParameter(p, FPS = 30)
 
 ## The next value is for the old CCD cameras
 ## mm.per.pixel<-0.2156
