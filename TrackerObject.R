@@ -304,6 +304,7 @@ Summarize.Tracker <- function(tracker,
   
   ## Now get the summary on the rest
   total.min <- rd$Minutes[nrow(rd)] - rd$Minutes[1]
+  total.frames<-nrow(rd)
   total.dist <-
     (rd$TotalDistance[nrow(rd)] - rd$TotalDistance[1]) * tracker$Parameters$mmPerPixel
   perc.Sleeping <- sum(rd$Sleeping) / length(rd$Sleeping)
@@ -331,6 +332,7 @@ Summarize.Tracker <- function(tracker,
       avg.speed,
       range[1],
       range[2],
+      total.frames,
       r.tmp
     )
   names(results) <-
@@ -346,6 +348,7 @@ Summarize.Tracker <- function(tracker,
       "AvgSpeed",
       "StartMin",
       "EndMin",
+      "TotalFrames",
       regions
     )
   
@@ -381,7 +384,7 @@ Plot.Tracker<-function(tracker,
                      range = c(0, 0),
                      ShowQuality = FALSE,
                      PointSize = 0.75){
-  PlotXY.Tracker(tracker,range,ShowQualilty,PointSize)
+  PlotXY.Tracker(tracker,range,ShowQuality,PointSize)
 }
 
 PlotXY.Tracker <-

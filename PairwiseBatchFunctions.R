@@ -1,7 +1,7 @@
 source("ArenaObject.R")
 
 
-TheActualStuff<-function(dirname){
+TheActualStuff<-function(dirname,mmPerPixel,fps){
   ###################################
   ## Run this part first
   ## If no errors, then move on....
@@ -15,7 +15,7 @@ TheActualStuff<-function(dirname){
   Interaction.Distance.mm<-c(2,4,6,8,10,12)
   p<-ParametersClass.PairwiseInteractionCounter(Interaction.Distance.mm[1])
   ## saved in the output file by DTrack.
-  p<-Parameters.SetParameter(p,FPS=NA)
+  p<-Parameters.SetParameter(p,FPS=fps)
   
   ## The next value is for the old CCD cameras
   ## mm.per.pixel<-0.2156
@@ -23,7 +23,7 @@ TheActualStuff<-function(dirname){
   ## mm.per.pixel<-0.132
   ## The next value is roughly good for the Arenas
   # mm.per.pixel<-0.0.056
-  p<-Parameters.SetParameter(p,mmPerPixel=0.132)
+  p<-Parameters.SetParameter(p,mmPerPixel=mmPerPixel)
 
   arena<-ArenaClass(p,dirname)
   
@@ -64,11 +64,11 @@ TheActualStuff<-function(dirname){
 
 
 
-RunBatchAnalysis<-function(parentFolder){
+RunBatchAnalysis<-function(parentFolder,mmPerPixel,fps){
   thefolders<-list.dirs(parentFolder)
   thefolders<-thefolders[-1]
   for(f in thefolders){
     print(paste("Analyzing folder:",f,sep=""))
-    TheActualStuff(f)
+    TheActualStuff(f,mmPerPixel,fps)
   }
 }
