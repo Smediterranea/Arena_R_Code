@@ -128,7 +128,7 @@ Summarize.PairwiseInteractionTracker <- function(tracker,
 }
 
 
-OutputAliData.PairwiseInteractionArena <- function(arena) {
+OutputAliData.PairwiseInteractionTrackerArena <- function(arena,dirname) {
   trackers.to.get <- arena$Trackers[arena$Trackers$ObjectID == 0, ]
   
   tmp <- Arena.GetTracker(arena, trackers.to.get[1, ])

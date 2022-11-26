@@ -32,6 +32,6 @@ Summarize(arena)
 
 
 ## To output the Arena data in a form that we can send to Ali do the following
-OutputAliData.PairwiseInteractionArena(arena)
+OutputAliData.PairwiseInteractionTrackerArena(arena,dirname)
 
 

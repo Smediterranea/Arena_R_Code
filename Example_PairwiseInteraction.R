@@ -13,7 +13,7 @@ CleanTrackers()
 ## You can define a generic tracker
 ## You must exactly two counting regions in the experiment (not including "None")
 Interaction.Distance.mm<-c(2,4,6,8,10,12)
-p<-ParametersClass.PairwiseInteractionTracker(Interaction.Distance.mm[1])
+p<-ParametersClass.PairwiseInteractionCounter(Interaction.Distance.mm[1])
 ## saved in the output file by DTrack.
 p<-Parameters.SetParameter(p,FPS=10)
 
@@ -56,6 +56,9 @@ write.csv(
   file = paste(dirname, "/DataSummary.csv", sep = ""),
   row.names = FALSE
 )
+
+
+OutputAliData.PairwiseInteractionCounterArena(arena,dirname)
 
 #or Copy to a clipboard to enter directly into Excel
 #write.table(data.summary,"clipboard",sep="\t",row.names=FALSE)
