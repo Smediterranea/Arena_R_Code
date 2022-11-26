@@ -13,9 +13,9 @@ CleanTrackers()
 ## You can define a generic tracker
 ## You must exactly two counting regions in the experiment (not including "None")
 Interaction.Distance.mm<-c(2,4,6,8,10,12)
-p<-ParametersClass.PairwiseInteractionCounter(Interaction.Distance.mm[1])
+p<-ParametersClass.PairwiseInteractionTracker(Interaction.Distance.mm[1])
 ## saved in the output file by DTrack.
-p<-Parameters.SetParameter(p,FPS=NA)
+p<-Parameters.SetParameter(p,FPS=10)
 
 ## The next value is for the old CCD cameras
 ## mm.per.pixel<-0.2156

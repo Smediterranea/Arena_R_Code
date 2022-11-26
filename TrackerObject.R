@@ -1,6 +1,7 @@
 source("ParametersClass.R")
 source("TwoChoiceTracker.R")
 source("XChoiceTracker.R")
+source("PairwiseInteractionTracker.R")
 source("DDropTracker.R")
 source("GeneralUtility.R")
 require(ggplot2)
@@ -61,6 +62,9 @@ TrackerClass.RawDataFrame <-
     }
     else if (parameters$TType == "DDropTracker") {
       data <- DDropTracker.ProcessDDropTracker(data)
+    }
+    else if (parameters$TType == "PairwiseInteractionTracker") {
+      data <- PairwiseInteractionTracker.ProcessPairwiseInteractionTracker(data)
     }
     else{
       data<-Tracker.ProcessGeneralTracker(data)

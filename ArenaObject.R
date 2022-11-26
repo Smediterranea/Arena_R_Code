@@ -113,9 +113,11 @@ ArenaTrackerClass<-function(parameters,dirname="Data"){
   }
   
   tmp<-unique(theData[,c("ObjectID","TrackingRegion")])
-  cf<-tmp$TrackingRegion
-  tmp2<-str_sort(cf,numeric=TRUE)
-  trackers<-tmp %>% slice(match(tmp2,TrackingRegion))
+  trackers<-tmp[with(tmp,order(TrackingRegion,ObjectID))]
+  
+  #cf<-tmp$TrackingRegion
+  #tmp2<-str_sort(cf,numeric=TRUE)
+  #trackers<-tmp %>% slice(match(tmp2,TrackingRegion))
   
   ## Get the tracking ROI and the Counting ROI
   ## This reg expression tries to avoid temporary files that begin with '~'
