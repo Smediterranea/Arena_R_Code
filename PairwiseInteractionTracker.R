@@ -128,6 +128,26 @@ Summarize.PairwiseInteractionTracker <- function(tracker,
 }
 
 
+GetAverageNeighborDistance.PairwiseInteractionTrackerArena <- function(arena,dirname) {
+  trackers.to.get <- arena$Trackers[arena$Trackers$ObjectID == 0, ]
+  
+  tmp <- Arena.GetTracker(arena, trackers.to.get[1, ])
+  results <- data.frame(tmp$RawData[, c("Minutes", "ClosestNeighbor_mm")])
+  names(results) <- c("Minutes", tmp$Name)
+  
+  if (nrow(trackers.to.get) > 1) {
+    for (i in 2:nrow(trackers.to.get)) {
+      tmp <- Arena.GetTracker(arena, trackers.to.get[i, ])
+      assign(tmp$Name, tmp$RawData$ClosestNeighbor_mm)
+      results <- data.frame(results, tmp$Name)
+    }
+  }
+  
+ ## Todo: need to finish this
+}
+
+
+
 OutputAliData.PairwiseInteractionTrackerArena <- function(arena,dirname) {
   trackers.to.get <- arena$Trackers[arena$Trackers$ObjectID == 0, ]
   
