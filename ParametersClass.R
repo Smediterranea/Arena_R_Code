@@ -75,6 +75,12 @@ ParametersClass.TwoChoiceTracker=function(){
   p
 }
 
+ParametersClass.ArenaCounter=function(){
+  p<-ParametersClass()
+  p<-Parameters.SetParameter(p,TType="Counter")
+  p
+}
+
 ParametersClass.PairwiseInteractionCounter=function(Interaction.Dist.mm=8){
   Filter.Sleep=FALSE
   Filter.Tracker.Error=0

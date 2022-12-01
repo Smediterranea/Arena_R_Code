@@ -51,6 +51,9 @@ CounterClass.RawDataFrame <-
     else if (parameters$TType == "SocialDistanceCounter") {
       data <- SocialDistanceCounter.ProcessSocialDistanceCounter(data)
     }
+    else if(parameters$TType == "Counter"){
+      
+    }
     else{
       stop("Improper tracker type!")
     }
