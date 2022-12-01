@@ -204,9 +204,32 @@ OutputAliData.PairwiseInteractionCounterArena <- function(arena,dirname) {
   write.csv(results,paste(dirname,"/AliOutput.csv",sep=""),row.names = FALSE)
 }
 
-
-OutputAliData<-PairwiseInteractionCounterArena<-function(arena){
+GetAverageNeighborDistance.PairwiseInteractionCounterArena<-function(arena){
   
+  trackers.to.get <- arena$Trackers
+  
+  max.rows<-0
+  for(i in 1:nrow(trackers.to.get)){
+    tmp <- Arena.GetTracker(arena, trackers.to.get[i, ])
+    tmp2<-length(tmp$InteractionData$Results$Distance_mm)
+    if(tmp2>max.rows)
+      max.rows<-tmp2
+  }
+  
+  results<-data.frame(matrix(rep(NA,max.rows*(nrow(trackers.to.get)+1)),ncol=nrow(trackers.to.get)+1))
+  
+  results[,1]<-1:nrow(results)
+  for (i in 1:nrow(trackers.to.get)) {
+    tmp <- Arena.GetTracker(arena, trackers.to.get[i, ])$InteractionData$Results$Distance_mm
+    results[1:length(tmp),i+1] <-tmp
+  }
+  names(results)<-c("Index",trackers.to.get[,1])
+  
+  
+  MeanDist<-apply(results[,-1],2,mean,na.rm=TRUE)
+  tmp<-!is.na(results)
+  Count<-apply(tmp[,-1],2,sum)
+  rbind(means,counts)
 }
 
 
