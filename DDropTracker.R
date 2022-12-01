@@ -182,8 +182,8 @@ ZeroDDropResults<-function(results){
   new.results<-results$PerRun
   colsToZero<-c("SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90")
   new.results[,colsToZero]<-new.results[,colsToZero] - new.results[,"SecFirstSeen"]
-  if("Fly" %in% colnames(results)){
-    results2<-GetAveragedPerFlyResults(results)
+  if("Fly" %in% colnames(results$PerRun)){
+    results2<-GetAveragedPerFlyResults(results$PerRun)
   }
   else {
     results2<-NULL
