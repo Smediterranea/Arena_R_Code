@@ -60,3 +60,19 @@ CounterClass.RawDataFrame <-
     
     data
   }
+
+
+Counter.GetRawData <- function(counter, range = c(0, 0)) {
+  rd <- counter$RawData
+  if (sum(range) != 0) {
+    rd <- rd[(rd$Minutes > range[1]) & (rd$Minutes < range[2]), ]
+  }
+  ## Filter out unwanted data
+  if (tracker$Parameters$Filter.Sleep == TRUE) {
+    rd <- rd[rd$Sleeping == 0, ]
+  }
+  if (tracker$Parameters$Filter.Tracker.Error == 1) {
+    rd <- rd[rd$DataQuality == "High", ]
+  }
+  rd
+}
