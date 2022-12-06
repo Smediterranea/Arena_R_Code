@@ -30,11 +30,13 @@ PairwiseInteractionTracker.ProcessPairwiseInteractionTracker <- function(tracker
 
 
 PairwiseInteractionTracker.GetNeighborDistance<-function(tracker){
-  ## This will use the PI-Multiplier to adjust all X values.
   tmp<-tracker$RawData$ClosestNeighbor*tracker$Parameters$mmPerPixel
-  tmp2<-tmp<=tracker$Parameters$Interaction.Distance.mm
+  tmp[tracker$RawData$DataQuality!="High"]<- (-1)
+  tmp[tracker$RawData$ClosestNeighbor==-1]<- (-1)
+  tmp2<-(tmp<=tracker$Parameters$Interaction.Distance.mm) & (tmp >= 0)
   tracker$RawData$ClosestNeighbor_mm <- tmp
   tracker$RawData$IsInteracting<-tmp2
+  tracker$RawData$IsNeighborFound<-tracker$RawData$ClosestNeighbor >= 0
   tracker
 }
 
@@ -45,7 +47,7 @@ Summarize.PairwiseInteractionTracker <- function(tracker,
   
   ## Now get the summary on the rest
   total.min <- rd$Minutes[nrow(rd)] - rd$Minutes[1]
-  total.frames<-nrow(rd)
+  total.frames<-sum(rd$IsNeighborFound)
   total.frames.interacting<-sum(rd$IsInteracting)
   perc.interacting<-total.frames.interacting/total.frames
   total.dist <-
@@ -93,7 +95,7 @@ Summarize.PairwiseInteractionTracker <- function(tracker,
       "AvgSpeed",
       "StartMin",
       "EndMin",
-      "TotalFrames",
+      "TotalPairedFrames",
       "TotalFramesInteracting",
       "PercentInteracting",
       regions

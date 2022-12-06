@@ -244,12 +244,21 @@ Load.DDrop.Object<-function(parameters,filename,dirname,runNumber){
 }
 
 Arena.ChangeParameterObject<-function(arena,newP) {
-  for(i in arena$Trackers){
-    tmp<-paste("Tracker_",i,sep="")
-    t<-Arena.GetTracker(arena,i)
+  for(i in 1:nrow(arena$Trackers)){
+    id<-arena$Trackers[i,]
+    if(length(id)<2){
+      tmp<-paste("Tracker_",id,sep="")  
+    }
+    else if(length(id)==2){
+      tmp<-paste("Tracker_",id$TrackingRegion,"_",id$ObjectID,sep="")
+    }
+    else{
+      tmp=""
+    }
+    t<-Arena.GetTracker(arena,id)
     arena[[tmp]]<-Tracker.ChangeParameterObject(t,newP)
   }
-  chamber
+  arena
 }
 
 Arena.GetTracker<-function(arena,id){
