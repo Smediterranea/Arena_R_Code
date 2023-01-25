@@ -52,3 +52,13 @@ PlotY(ARENA1)
 
 ## This takes some time but will output pdf files. You need Imagemagik as noted above.
 Plot.All.DDropArenas() 
+
+tdata<-results$PerFly
+vars<-names(tdata)
+for(i in 3:ncol(tdata)){
+  cat("\n")
+  cat(paste("***",vars[i],"***",sep=""))
+  tmp<-aov(tdata[,i]~tdata$Treatment)
+  print(summary(tmp))
+  cat("\n")
+}
