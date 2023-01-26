@@ -32,6 +32,7 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   totalUpdist<-Tracker.GetTotalUpDist(tracker,range)
 
   maxY<-Tracker.GetMaxY(tracker,range)
+  firstSeenY<-Tracker.GetFirstY_mm(tracker,range)
   
   avgspeed<-mean(rd$Speed, na.rm=TRUE)
   
@@ -44,19 +45,19 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   total.min<-rd$Minutes[nrow(rd)]-rd$Minutes[1]
   total.sec<-total.min*60
   if(is.null(tracker$ExpDesign)){
-    results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-    names(results)<-c("ObjectID","TrackingRegion","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+    results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstSeenY,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+    names(results)<-c("ObjectID","TrackingRegion","ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   }
   else{
-    results<-data.frame(tracker$ID,tracker$ExpDesign$Fly,tracker$ExpDesign$Treatment,total.sec,firstTimeSeen,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-    names(results)<-c("ObjectID","TrackingRegion","Fly","Treatment","ObsSeconds","SecFirstSeen","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+    results<-data.frame(tracker$ID,tracker$ExpDesign$Fly,tracker$ExpDesign$Treatment,total.sec,firstTimeSeen,firstSeenY,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+    names(results)<-c("ObjectID","TrackingRegion","Fly","Treatment","ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   }
   results
 }
   
 
 GetAveragedPerFlyResults<-function(results){
-  colstoget<-c("ObsSeconds","SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90","MaxY_mm","TotalYDist","TotalUpDist",
+  colstoget<-c("ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50","SecTo75","SecTo90","MaxY_mm","TotalYDist","TotalUpDist",
                "AvgSpeed","AvgTop10Speed","TotalDist_mm")
   fly<-results$Fly
   data<-results[,colstoget]
@@ -111,6 +112,15 @@ Tracker.GetFirstTimeAboveYPos<-function(tracker,percentclimb){
 
 Tracker.GetFirstRelYPos<-function(tracker){
   tracker$RawData$RelY[1]
+}
+
+Tracker.GetFirstY_mm<-function(tracker,time=c(0,0)){
+  rd<-Tracker.GetRawData(tracker,time)
+  tmp<-rd$RelY[1]
+  bottom<-(-1)*tracker$ROI[2]/2
+  first.pixel<-tmp-bottom
+  first.mm<-first.pixel*tracker$Parameters$mmPerPixel
+  first.mm
 }
 
 Tracker.GetTotalYDist<-function(tracker,time=c(0,0)){
