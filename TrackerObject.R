@@ -125,10 +125,10 @@ Tracker.Calculate.SpeedsAndFeeds <- function(tracker) {
   tdata <- tracker$RawData
   tmp <- length(tdata$X)
   if (tmp > 0) {
-    x1 <- tdata$X[1:(tmp - 1)]
-    x2 <- tdata$X[2:tmp]
-    y1 <- tdata$Y[1:(tmp - 1)]
-    y2 <- tdata$Y[2:tmp]
+    x1 <- tdata$RelX[1:(tmp - 1)]
+    x2 <- tdata$RelX[2:tmp]
+    y1 <- tdata$RelY[1:(tmp - 1)]
+    y2 <- tdata$RelY[2:tmp]
     min1 <- tdata$Minutes[1:(tmp - 1)]
     min2 <- tdata$Minutes[2:tmp]
     delta.sec <- c(0, (min2 - min1) * 60)
