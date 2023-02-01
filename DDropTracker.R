@@ -30,9 +30,6 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   firstUps<-Tracker.GetFirstTimeAboveYPos(tracker,c(0.25,0.5,0.75,0.9))
   totalYdist<-Tracker.GetTotalYDist(tracker,range)
   totalUpdist<-Tracker.GetTotalUpDist(tracker,range)
-
-  maxY<-Tracker.GetMaxY(tracker,range)
-  firstSeenY<-Tracker.GetFirstY_mm(tracker,range)
   
   avgspeed<-mean(rd$Speed, na.rm=TRUE)
   
@@ -42,23 +39,35 @@ Summarize.DDropTracker<-function(tracker,range=c(0,0),ShowPlot=FALSE){
   avgTop10speed<-mean(tmp, na.rm=TRUE)
   totaldist<-rd$TotalDistance[length(rd$TotalDistance)]*tracker$Parameters$mmPerPixel
   
+  ## New stuff
+  firstSeenY<-Tracker.GetFirstY_mm(tracker,range)
+  maxY<-Tracker.GetMaxY(tracker,range)
+  ## MaxY every 2 seconds, 
+  times<-seq(tracker$Parameters$DDropDivision.sec,tracker$Parameters$ObservationTime.sec,by=tracker$Parameters$DDropDivision.sec)
+  maxYs<-rep(-1,length(times))
+  for(i in 1:length(times)){
+    maxYs[i]<-Tracker.GetMaxY(tracker,c(0,times[i]/60))
+  }
+  max.labels<-paste("Sec",times,"_mm",sep="")
+  
+  
   total.min<-rd$Minutes[nrow(rd)]-rd$Minutes[1]
   total.sec<-total.min*60
   if(is.null(tracker$ExpDesign)){
-    results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstSeenY,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-    names(results)<-c("ObjectID","TrackingRegion","ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+    results<-data.frame(tracker$ID,total.sec,firstTimeSeen,firstSeenY,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,t(maxYs),totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+    names(results)<-c("ObjectID","TrackingRegion","ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm",max.labels,"TotalYDist_mm","TotalUpDist_mm","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   }
   else{
-    results<-data.frame(tracker$ID,tracker$ExpDesign$Fly,tracker$ExpDesign$Treatment,total.sec,firstTimeSeen,firstSeenY,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
-    names(results)<-c("ObjectID","TrackingRegion","Fly","Treatment","ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm","TotalYDist","TotalUpDist","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
+    results<-data.frame(tracker$ID,tracker$ExpDesign$Fly,tracker$ExpDesign$Treatment,total.sec,firstTimeSeen,firstSeenY,firstUps[1],firstUps[2],firstUps[3],firstUps[4],maxY,t(maxYs),totalYdist,totalUpdist,avgspeed,avgTop10speed,totaldist,perc.Sleeping,perc.Walking,perc.MicroMoving,perc.Resting,range[1],range[2])
+    names(results)<-c("ObjectID","TrackingRegion","Fly","Treatment","ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50", "SecTo75", "SecTo90","MaxY_mm",max.labels,"TotalYDist_mm","TotalUpDist_mm","AvgSpeed","AvgTop10Speed","TotalDist_mm","PercSleeping","PercWalking","PercMicroMoving","PercResting","StartMin","EndMin")
   }
   results
 }
   
 
 GetAveragedPerFlyResults<-function(results){
-  colstoget<-c("ObsSeconds","SecFirstSeen","FirstSeenY_mm","SecTo25","SecTo50","SecTo75","SecTo90","MaxY_mm","TotalYDist","TotalUpDist",
-               "AvgSpeed","AvgTop10Speed","TotalDist_mm")
+  tmp<-(1:ncol(results))[names(results)=="ObsSeconds"]+1
+  colstoget<-tmp:(ncol(results)-2)
   fly<-results$Fly
   data<-results[,colstoget]
   results2<-aggregate(data,list(Fly=fly),FUN=mean,na.rm=TRUE)
@@ -110,64 +119,61 @@ Tracker.GetFirstTimeAboveYPos<-function(tracker,percentclimb){
   result*60
 }
 
-Tracker.GetFirstRelYPos<-function(tracker){
-  tracker$RawData$RelY[1]
-}
-
 Tracker.GetFirstY_mm<-function(tracker,time=c(0,0)){
   rd<-Tracker.GetRawData(tracker,time)
-  tmp<-rd$RelY[1]
-  bottom<-(-1)*tracker$ROI[2]/2
-  first.pixel<-tmp-bottom
-  first.mm<-first.pixel*tracker$Parameters$mmPerPixel
-  first.mm
+  result<-rd$Ypos_mm[1]-((tracker$ROI[2]/2)*-1.0*tracker$Parameters$mmPerPixel)
+  if(result<0){
+    result<-0
+  }
+  result
 }
 
 Tracker.GetTotalYDist<-function(tracker,time=c(0,0)){
   rd<-Tracker.GetRawData(tracker,time)
-  y1<-rd$RelY[-1]
-  y2<-rd$RelY[-length(rd$RelY)]
-  delta.y<-sum(abs(y1-y2))
-  delta.y*tracker$Parameters$mmPerPixel  
+  sum(abs(rd$DeltaY_mm))
 }
 
 Tracker.GetTotalUpDist<-function(tracker,time=c(0,0)){
   rd<-Tracker.GetRawData(tracker,time)
-  y1<-rd$RelY[-1]
-  y2<-rd$RelY[-length(rd$RelY)]
-  delta.y<-y1-y2
+  delta.y<-rd$DeltaY_mm
   delta.y[delta.y<0]<-0
-  tmp<-sum(delta.y)
-  tmp*tracker$Parameters$mmPerPixel
+  sum(delta.y)
 }
 
 Tracker.GetMaxY<-function(tracker,time=c(0,0)){
   rd<-Tracker.GetRawData(tracker,time)
-  tmp<-max(rd$RelY)
-  bottom<-(-1)*tracker$ROI[2]/2
   
-  maxY.pixel<-tmp-bottom
-  maxY.mm<-maxY.pixel*tracker$Parameters$mmPerPixel
-  maxY.mm
+  ## It's possible the fly isn't seen yet.
+  ## If so, just assume its position is 1mm below
+  ## its minimal value
+  if(nrow(rd)<1){
+    result<-0
+  }
+  else {
+    result<-max(rd$Ypos_mm)
+    result<-result-((tracker$ROI[2]/2)*-1.0*tracker$Parameters$mmPerPixel)
+    result<-result-Tracker.GetFirstY_mm(tracker,time)
+  }
 }
 
 
-## Functions that just catch misapplied higher functions
-FinalPI.DDropTracker<-function(tracker){
-  cat("This function not available for this type of tracker")
+Tracker.GetMaxY.OldUnadjusted<-function(tracker,time=c(0,0)){
+  rd<-Tracker.GetRawData(tracker,time)
+  
+  ## It's possible the fly isn't seen yet.
+  ## If so, just assume its position is 1mm below
+  ## its minimal value
+  if(nrow(rd)<1){
+    result<-min(tracker$RawData$Ypos_mm)-2
+    result<-result-((tracker$ROI[2]/2)*-1.0*tracker$Parameters$mmPerPixel)
+  }
+  else {
+    result<-max(rd$Ypos_mm)
+    result<-result-((tracker$ROI[2]/2)*-1.0*tracker$Parameters$mmPerPixel)
+  }
 }
-CumulativePI.DDropTracker<-function(tracker){
-  cat("This function not available for this type of tracker")
-}
-GetPIData.DDropTracker<-function(tracker,range=c(0,0)){
-  cat("This function not available for this type of tracker")
-}
-PIPlots.DDropTracker<-function(tracker,range=c(0,0)){
-  cat("This function not available for this type of tracker")
-}
-TimeDependentPIPlots.DDropTracker<-function(tracker,range=c(0,0)){
-  cat("This function not available for this type of tracker")
-}
+
+
 
 
 Summarize.All.DDropArenas<-function(){
@@ -201,19 +207,6 @@ Summarize.All.DDropArenas<-function(){
   result
 }
 
-ZeroDDropResults<-function(results){
-  new.results<-results$PerRun
-  colsToZero<-c("SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90")
-  new.results[,colsToZero]<-new.results[,colsToZero] - new.results[,"SecFirstSeen"]
-  if("Fly" %in% colnames(results$PerRun)){
-    results2<-GetAveragedPerFlyResults(results$PerRun)
-  }
-  else {
-    results2<-NULL
-  }
-  new.results<-list(PerRun=new.results,PerFly=results2)
-  new.results
-}
 
 Plot.DDropTracker<-function(tracker,range=c(0,0)){
   PlotY(tracker,range)
@@ -229,4 +222,40 @@ Plot.All.DDropArenas<-function(){
       PlotY(tmp)
     }
   }
+}
+
+## Functions that just catch misapplied higher functions
+FinalPI.DDropTracker<-function(tracker){
+  cat("This function not available for this type of tracker")
+}
+CumulativePI.DDropTracker<-function(tracker){
+  cat("This function not available for this type of tracker")
+}
+GetPIData.DDropTracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
+PIPlots.DDropTracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
+TimeDependentPIPlots.DDropTracker<-function(tracker,range=c(0,0)){
+  cat("This function not available for this type of tracker")
+}
+
+
+####################################
+## Deprecated
+####################################
+
+ZeroDDropResults<-function(results){
+  new.results<-results$PerRun
+  colsToZero<-c("SecFirstSeen","SecTo25","SecTo50","SecTo75","SecTo90")
+  new.results[,colsToZero]<-new.results[,colsToZero] - new.results[,"SecFirstSeen"]
+  if("Fly" %in% colnames(results$PerRun)){
+    results2<-GetAveragedPerFlyResults(results$PerRun)
+  }
+  else {
+    results2<-NULL
+  }
+  new.results<-list(PerRun=new.results,PerFly=results2)
+  new.results
 }
