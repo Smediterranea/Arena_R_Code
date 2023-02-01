@@ -9,6 +9,8 @@ ParametersClass=function(){
   MicroMove.mm.sec<-c(0.2,2.0)
   Walking.mm.sec<-2.0
   Smooth.Speed.Data<-TRUE
+  DDropDivision.sec<-1
+  ObservationTime.sec<-15
   FPS=NA
   TType="ArenaTracker"
   tmp<-list(mmPerPixel=mmPerPixel,FPS=FPS, Smooth.Speed.Data=Smooth.Speed.Data,Filter.Sleep=Filter.Sleep,Filter.Tracker.Error=Filter.Tracker.Error,Sleep.Threshold.Min=Sleep.Threshold.Min,
@@ -21,7 +23,8 @@ ParametersClass=function(){
 
 ## change the initial values using this function
 Parameters.SetParameter<-function(p,mmPerPixel=NA,Filter.Sleep=NA,Filter.Tracker.Error=NA, Sleep.Threshold.Min=NA, 
-                                  Sleep.Threshold.Distance.mm=NA,MicroMove.mm.sec=NA,Walking.mm.sec=NA,TType=NA, Smooth.Speed.Data=NA, FPS=NA){
+                                  Sleep.Threshold.Distance.mm=NA,MicroMove.mm.sec=NA,Walking.mm.sec=NA,TType=NA, Smooth.Speed.Data=NA, FPS=NA,
+                                  ObservationTime.sec=NA,DDropDivision.sec=NA){
   tmp.O<-options()
   options(warn=-1)
   ## Change only those that are listed
@@ -55,6 +58,12 @@ Parameters.SetParameter<-function(p,mmPerPixel=NA,Filter.Sleep=NA,Filter.Tracker
   }
   if(!is.na(Walking.mm.sec)) {
     p$Walking.mm.sec=Walking.mm.sec
+  }
+  if(!is.na(ObservationTime.sec)) {
+    p$ObservationTime.sec=ObservationTime.sec
+  }
+  if(!is.na(DDropDivision.sec)) {
+    p$DDropDivision.sec=DDropDivision.sec
   }
   if(!is.na(TType)){
     p$TType=TType 
@@ -137,6 +146,8 @@ ParametersClass.DDrop=function(){
   p<-ParametersClass()
   p<-Parameters.SetParameter(p,TType="DDropTracker")
   p$mmPerPixel<-0.079 # This is for the latest DDrop with BlackFly
+  p$ObservationTime.sec<-15
+  p$DDropDivision.sec<-3
   p$FPS<-NA
   p$Smooth.Speed.Data<-FALSE
   p$Filter.Sleep<-FALSE
@@ -165,6 +176,12 @@ Parameters.AreParametersEqual<-function(p1,p2){
     result<-FALSE
   }
   if(p1$Smooth.Speed.Data!=p2$Smooth.Speed.Data) {
+    result<-FALSE
+  }
+  if(p1$ObservationTime.sec!=p2$ObservationTime.sec) {
+    result<-FALSE
+  }
+  if(p1$DDropDivision.sec!=p2$DDropDivision.sec) {
     result<-FALSE
   }
   if(p1$FPS!=p2$FPS) {

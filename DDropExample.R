@@ -18,9 +18,17 @@ source("GeneralUtility.R")
 ## the lanes. An experimental design file is optional (ExpDesign.csv) but helps
 ## simply downstream organization.
 dirname<-"DDropData"
-parameters<-ParametersClass.DDrop()
+p<-ParametersClass.DDrop()
 
-ReadDDropFiles(parameters,dirname)
+## Set this to the total time observed for each run
+p<-Parameters.SetParameter(p,ObservationTime.sec=15)
+## Set this to the divisions to analyze y distance moved
+p<-Parameters.SetParameter(p,DDropDivision.sec=3)
+## Set this to proper conversion for the camera
+p<-Parameters.SetParameter(p,mmPerPixel=0.079)
+
+
+ReadDDropFiles(p,dirname)
 
 ## This results object will have data for each run as well as average for each
 ## fly.
@@ -38,20 +46,13 @@ write.table(results$PerRun,"clipboard",sep="\t",row.names=FALSE)
 
 write.table(results$PerFly,"clipboard",sep="\t",row.names=FALSE)
 
-## Isolate the data only after the flies are first seen above
-## the basement mask.
-zeroed.results<-ZeroDDropResults(results)
-outputfile<- paste("./",dirname,"/ZeroedDDropResultsPerRun.csv",sep="")
-write.csv(zeroed.results$PerRun,file=outputfile,row.names=FALSE)
-outputfile<- paste("./",dirname,"/ZeroedDDropResultsPerFly.csv",sep="")
-write.csv(zeroed.results$PerFly,file=outputfile,row.names=FALSE)
-
-
 ## Plots can be useful as well
 PlotY(ARENA1)
 
 ## This takes some time but will output pdf files. You need Imagemagik as noted above.
 Plot.All.DDropArenas() 
+
+## ANOVAs for all calculated metrics
 
 tdata<-results$PerFly
 vars<-names(tdata)
