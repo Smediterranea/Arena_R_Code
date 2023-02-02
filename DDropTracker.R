@@ -181,7 +181,6 @@ Summarize.All.DDropArenas<-function(){
   arenas<-objects[grep("ARENA*",objects)]
   if(length(arenas)>0){
   for(i in arenas){
-    print(i)
     tmp<-get(i)
     tmp.result<-Summarize(tmp,ShowPlot=FALSE)
     Arena<-rep(tmp$Name)
