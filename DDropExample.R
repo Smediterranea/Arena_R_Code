@@ -25,7 +25,8 @@ p<-Parameters.SetParameter(p,ObservationTime.sec=15)
 ## Set this to the divisions to analyze y distance moved
 p<-Parameters.SetParameter(p,DDropDivision.sec=3)
 ## Set this to proper conversion for the camera
-p<-Parameters.SetParameter(p,mmPerPixel=0.079)
+## Pletcher lab - 0.087
+p<-Parameters.SetParameter(p,mmPerPixel=0.087)
 
 
 ReadDDropFiles(p,dirname)
