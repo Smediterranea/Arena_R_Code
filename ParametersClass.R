@@ -53,7 +53,7 @@ Parameters.SetParameter<-function(p,mmPerPixel=NA,Filter.Sleep=NA,Filter.Tracker
   if(!is.na(mmPerPixel)) {
     p$mmPerPixel=mmPerPixel
   }
-  if(!is.na(MicroMove.mm.sec)) {
+  if(sum(!is.na(MicroMove.mm.sec))) {
     p$MicroMove.mm.sec=MicroMove.mm.sec
   }
   if(!is.na(Walking.mm.sec)) {
